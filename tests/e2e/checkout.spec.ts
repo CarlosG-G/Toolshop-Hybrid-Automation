@@ -7,11 +7,7 @@ import { RegisterPage } from "../../src/pages/register.page.js";
 import { buildRegistration } from "../../src/data/factories.js";
 import { config } from "../../src/config/env.js";
 import { invalidPayments, validPayments } from "../../src/data/payments.js";
-
-const customer = {
-  email: "customer@practicesoftwaretesting.com",
-  password: "welcome01",
-};
+import { gates, seededCustomer } from "../support/gates.js";
 
 function invoiceNumberFrom(body: unknown): string {
   if (
@@ -29,7 +25,7 @@ function invoiceNumberFrom(body: unknown): string {
 async function openPaymentStep(page: Page) {
   const login = new LoginPage(page);
   await login.open(config.siteUrl);
-  await login.signIn(customer.email, customer.password);
+  await login.signIn(seededCustomer.email, seededCustomer.password);
 
   const product = new ProductPage(page);
   const productName = await product.openFirstAvailable(config.siteUrl);
@@ -49,10 +45,7 @@ async function openPaymentStep(page: Page) {
 
 test.describe("Authenticated checkout journey @e2e @smoke", () => {
   test.beforeEach(() => {
-    test.skip(
-      process.env.TOOLSHOP_LIVE !== "1" || !config.allowsWrites,
-      "The checkout journey only runs against the disposable local SUT.",
-    );
+    gates.writableSut();
   });
 
   test("TC-E2E-001 reaches payment selection from an authenticated cart", async ({
@@ -63,6 +56,7 @@ test.describe("Authenticated checkout journey @e2e @smoke", () => {
     await expect(checkout.paymentMethod()).toHaveValue("cash-on-delivery");
   });
 
+  // Generated test cases: TC-E2E-010..014
   for (const [index, [method, payment]] of Object.entries(validPayments).entries()) {
     const caseId = `TC-E2E-${String(index + 10).padStart(3, "0")}`;
     test(`${caseId} completes checkout using ${method}`, async ({ page }) => {
@@ -88,10 +82,7 @@ test.describe("Authenticated checkout journey @e2e @smoke", () => {
 
 test.describe("Customer registration journey @e2e", () => {
   test.beforeEach(() => {
-    test.skip(
-      process.env.TOOLSHOP_LIVE !== "1" || !config.allowsWrites,
-      "Registration only runs against the disposable local SUT.",
-    );
+    gates.writableSut();
   });
 
   test("TC-E2E-002 registers a customer and signs in with the new account", async ({
@@ -113,10 +104,7 @@ test.describe("Customer registration journey @e2e", () => {
 
 test.describe("Payment form validation @e2e @negative", () => {
   test.beforeEach(() => {
-    test.skip(
-      process.env.TOOLSHOP_LIVE !== "1" || !config.allowsWrites,
-      "Payment validation only runs against the disposable local SUT.",
-    );
+    gates.writableSut();
   });
 
   test("TC-E2E-030 keeps the payment action disabled until a method is chosen", async ({
@@ -127,6 +115,7 @@ test.describe("Payment form validation @e2e @negative", () => {
     await expect(checkout.finishButton()).toBeDisabled();
   });
 
+  // Generated test cases: TC-E2E-031..036
   for (const [index, { rule, payment }] of invalidPayments.entries()) {
     const caseId = `TC-E2E-${String(index + 31).padStart(3, "0")}`;
     test(`${caseId} blocks payment with ${rule}`, async ({ page }) => {

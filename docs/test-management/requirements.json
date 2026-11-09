@@ -1,0 +1,73 @@
+{
+  "requirements": [
+    {
+      "id": "REQ-CAT-01",
+      "title": "Visitors can browse and search the product catalog",
+      "risk": "High",
+      "tests": [
+        "TC-API-00[1-5]",
+        "TC-API-064",
+        "WB-01",
+        "TC-A11Y-001",
+        "TC-PERF-00[1-3]",
+        "TC-MOB-00[12]",
+        "TC-RES-00[1-3]"
+      ]
+    },
+    {
+      "id": "REQ-AUTH-01",
+      "title": "Customers can authenticate and access their profile",
+      "risk": "High",
+      "tests": ["TC-API-01[0-4]", "TC-E2E-02[0-2]", "TC-A11Y-002"]
+    },
+    {
+      "id": "REQ-REG-01",
+      "title": "Visitors can register with validated data (age 18-75, password policy, unique email)",
+      "risk": "High",
+      "tests": [
+        "TC-API-02[0-8]",
+        "TC-API-06[1-3]",
+        "TC-API-067",
+        "TC-E2E-002",
+        "TC-E2E-02[34]",
+        "TC-A11Y-003"
+      ]
+    },
+    {
+      "id": "REQ-CART-01",
+      "title": "Customers can build a cart with valid products",
+      "risk": "Medium",
+      "tests": ["TC-API-03[01]", "TC-API-065"]
+    },
+    {
+      "id": "REQ-PAY-01",
+      "title": "Payment data is validated per method before an order is placed",
+      "risk": "High",
+      "tests": ["TC-API-04\\d", "TC-E2E-03\\d"]
+    },
+    {
+      "id": "REQ-CHK-01",
+      "title": "Authenticated customers can complete checkout and receive an invoice",
+      "risk": "High",
+      "tests": ["TC-API-05[0-2]", "TC-E2E-001", "TC-E2E-01\\d"]
+    },
+    {
+      "id": "REQ-API-01",
+      "title": "The REST API conforms to its OpenAPI contract and fails gracefully",
+      "risk": "Medium",
+      "tests": ["TC-CON-\\d+", "TC-API-060", "TC-API-066"]
+    },
+    {
+      "id": "REQ-SEC-01",
+      "title": "The API enforces authentication, authorization and does not leak data (OWASP API Top 10)",
+      "risk": "High",
+      "tests": ["TC-SEC-\\d+"]
+    },
+    {
+      "id": "REQ-NFR-01",
+      "title": "Public pages are accessible (WCAG 2.1 AA)",
+      "risk": "Medium",
+      "tests": ["TC-A11Y-004"]
+    }
+  ]
+}

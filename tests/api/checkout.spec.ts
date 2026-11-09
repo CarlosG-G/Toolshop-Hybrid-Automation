@@ -59,6 +59,7 @@ test.describe("Payment API negative partitions @api", () => {
     expect(result.status).toBe(422);
   });
 
+  // Generated test cases: TC-API-044..049
   for (const [index, { rule, payment }] of invalidPayments.entries()) {
     const caseId = `TC-API-${String(index + 44).padStart(3, "0")}`;
     test(`${caseId} rejects ${rule}`, async ({ api }) => {

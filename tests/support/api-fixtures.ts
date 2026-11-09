@@ -2,11 +2,9 @@ import { test as base, expect, request as playwrightRequest } from "@playwright/
 import { OpenApiContract } from "../../src/api/openapi-contract.js";
 import { ToolshopApi } from "../../src/api/toolshop-api.js";
 import { config } from "../../src/config/env.js";
+import { gates, seededCustomer } from "./gates.js";
 
-export const customer = {
-  email: "customer@practicesoftwaretesting.com",
-  password: "welcome01",
-} as const;
+export const customer = seededCustomer;
 
 interface ApiFixtures {
   api: ToolshopApi;
@@ -51,11 +49,6 @@ test.beforeEach(() => {
 });
 
 /** Write tests mutate data, so they only run against the disposable self-hosted SUT. */
-export const requiresWritableSut = (): void => {
-  test.skip(
-    !config.allowsWrites,
-    "Write operations only run against TOOLSHOP_TARGET=local.",
-  );
-};
+export const requiresWritableSut = (): void => gates.writableSut();
 
 export { expect };

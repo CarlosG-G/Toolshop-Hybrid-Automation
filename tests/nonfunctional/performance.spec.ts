@@ -1,5 +1,6 @@
 import { config } from "../../src/config/env.js";
-import { expect, productNames, requiresLocalUi, test } from "./support.js";
+import { gates } from "../support/gates.js";
+import { expect, productNames, test } from "./support.js";
 
 /** Budgets sized for the containerised SUT on a shared CI runner, not production SLOs. */
 const API_P95_BUDGET_MS = 1_000;
@@ -12,7 +13,7 @@ function percentile(values: number[], p: number): number {
 }
 
 test.describe("Performance budgets @performance @nonfunctional", () => {
-  test.beforeEach(requiresLocalUi);
+  test.beforeEach(gates.writableSut);
 
   test("TC-PERF-001 catalog API p95 latency stays within budget", async ({
     request,

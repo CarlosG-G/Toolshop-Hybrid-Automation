@@ -1,6 +1,7 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { config } from "../../src/config/env.js";
-import { expect, requiresLocalUi, test } from "./support.js";
+import { gates } from "../support/gates.js";
+import { expect, test } from "./support.js";
 
 const pages = [
   {
@@ -32,7 +33,7 @@ const pages = [
 ];
 
 test.describe("WCAG 2.1 AA accessibility @a11y @nonfunctional", () => {
-  test.beforeEach(requiresLocalUi);
+  test.beforeEach(gates.writableSut);
 
   for (const target of pages) {
     test(`${target.id} ${target.name} page has no critical WCAG violations`, async ({

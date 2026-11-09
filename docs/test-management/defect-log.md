@@ -12,6 +12,7 @@ and turns red as soon as the behaviour changes (fixed or regressed differently).
 | DEF-003 | Public stable API returns 500 for an unknown product | Minor    | Low      | TC-API-003  | Open (public env only) |
 | DEF-004 | Registration API accepts a malformed email           | Major    | High     | TC-API-062  | Open                   |
 | DEF-005 | Icon-only buttons without an accessible name         | Major    | Medium   | TC-A11Y-002 | Open                   |
+| DEF-006 | Registration API does not require date of birth      | Minor    | Medium   | TC-API-067  | Open                   |
 
 ## DEF-001 — Registration accepts customers older than 75 years
 
@@ -64,3 +65,12 @@ and turns red as soon as the behaviour changes (fixed or regressed differently).
 - **Actual:** an icon-only button in the form has no text, `aria-label` or `title`; screen readers
   announce it only as "button". The offending selectors are attached to the test as `axe-results.json`.
 - **Detected by:** TC-A11Y-002 (login) and TC-A11Y-003 (registration).
+
+## DEF-006 — Registration API does not require date of birth
+
+- **Environment:** self-hosted SUT (`TOOLSHOP_TARGET=local`), `POST /users/register`.
+- **Requirement:** the registration form marks `dob` as required and the OpenAPI schema documents it.
+- **Steps:** register a customer with every field valid except `dob`, which is omitted.
+- **Expected:** HTTP 422 with a validation error for `dob`.
+- **Actual:** the empty-payload validation response lists `first_name`, `last_name`, `email` and `password` but never `dob`; the field is not validated server-side.
+- **Technique:** client/server validation parity, error guessing.

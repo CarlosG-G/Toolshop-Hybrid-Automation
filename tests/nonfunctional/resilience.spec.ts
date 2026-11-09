@@ -1,10 +1,11 @@
 import { config } from "../../src/config/env.js";
-import { expect, productNames, requiresLocalUi, test } from "./support.js";
+import { gates } from "../support/gates.js";
+import { expect, productNames, test } from "./support.js";
 
 const productsApi = /\/products(\?.*)?$/;
 
 test.describe("Resilience under injected network faults @resilience @nonfunctional", () => {
-  test.beforeEach(requiresLocalUi);
+  test.beforeEach(gates.writableSut);
 
   test("TC-RES-001 still renders the catalog when the API is slow", async ({ page }) => {
     await page.route(productsApi, async (route) => {

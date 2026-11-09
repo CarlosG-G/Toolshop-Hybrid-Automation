@@ -21,6 +21,7 @@ test("WB-01: Playwright and Vibium check the same catalog heading", async ({
     name: "Practice Software Testing - Toolshop",
     level: 1,
   });
+  // oxlint-disable-next-line playwright/no-conditional-in-test -- the with-bugs target intentionally breaks the catalog heading
   if (config.target === "with-bugs") {
     await expect(catalogHeading).toHaveCount(0);
 

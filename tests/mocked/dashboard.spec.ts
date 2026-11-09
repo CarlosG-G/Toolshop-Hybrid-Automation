@@ -92,6 +92,7 @@ test("refreshes cached report data after an update", async ({ page }) => {
   await once(server, "listening");
   try {
     const address = server.address();
+    // oxlint-disable-next-line playwright/no-conditional-in-test -- type guard for server.address()
     if (!address || typeof address === "string") {
       throw new Error("Dashboard fixture did not bind to a TCP port.");
     }

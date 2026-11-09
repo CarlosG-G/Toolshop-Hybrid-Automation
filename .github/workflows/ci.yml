@@ -139,6 +139,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Verify requirement traceability
+        run: npm run traceability
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
       - run: npx playwright install --with-deps chromium
       - name: Install additional Playwright browsers
         if: inputs.browser_matrix

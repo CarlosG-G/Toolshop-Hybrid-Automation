@@ -1,10 +1,11 @@
 import { config } from "../../src/config/env.js";
-import { expect, productNames, requiresLocalUi, test } from "./support.js";
+import { gates } from "../support/gates.js";
+import { expect, productNames, test } from "./support.js";
 
 test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
 test.describe("Responsive layout on a mobile viewport @mobile @nonfunctional", () => {
-  test.beforeEach(requiresLocalUi);
+  test.beforeEach(gates.writableSut);
 
   const pages = [
     { path: "/", ready: productNames },

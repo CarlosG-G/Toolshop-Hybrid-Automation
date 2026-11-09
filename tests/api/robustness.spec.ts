@@ -39,6 +39,14 @@ test.describe("API robustness and input validation @api @negative", () => {
     expect(JSON.stringify(result.body)).toContain("email");
   });
 
+  test("TC-API-067 rejects a registration without date of birth", async ({ api }) => {
+    test.fail(true, "DEF-006 the API does not require dob while the UI does");
+    const { dob: _dob, ...withoutDob } = buildRegistration();
+    const result = await api.tryRegister(withoutDob as never);
+
+    expect(result.status).toBe(422);
+  });
+
   test("TC-API-063 never fails with a server error on oversized input", async ({
     api,
   }) => {

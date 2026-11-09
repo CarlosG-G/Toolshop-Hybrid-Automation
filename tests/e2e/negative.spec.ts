@@ -3,12 +3,10 @@ import { config } from "../../src/config/env.js";
 import { buildRegistration } from "../../src/data/factories.js";
 import { LoginPage } from "../../src/pages/login.page.js";
 import { RegisterPage, requiredRegisterFields } from "../../src/pages/register.page.js";
+import { gates } from "../support/gates.js";
 
 test.beforeEach(() => {
-  test.skip(
-    process.env.TOOLSHOP_LIVE !== "1" || !config.allowsWrites,
-    "Negative UI journeys only run against the disposable local SUT.",
-  );
+  gates.writableSut();
 });
 
 test.describe("Login form validation @e2e @negative", () => {

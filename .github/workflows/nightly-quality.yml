@@ -1,0 +1,44 @@
+name: Nightly load and security scan
+
+on:
+  schedule:
+    - cron: "37 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  load-and-dast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Start self-hosted Toolshop SUT
+        run: npm run sut:up
+      - uses: grafana/setup-k6-action@v1
+      - name: k6 load test (thresholds gate the job)
+        run: k6 run --summary-export reports/k6-summary.json tests/load/catalog.k6.js
+      - name: OWASP ZAP baseline scan (report only)
+        continue-on-error: true
+        run: |
+          mkdir -p reports && chmod 777 reports
+          docker run --rm --network host -v "$PWD/reports:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://127.0.0.1:4200 -I -r zap-report.html -J zap-report.json
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-quality-reports
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Stop SUT
+        if: always()
+        run: npm run sut:down
