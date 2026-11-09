@@ -180,11 +180,17 @@ jobs:
         continue-on-error: true
         run: npm run healthcheck:site
       - name: Run live API regression
+        id: live_api
+        # Public environments are shared and mutable: informative, never a merge gate.
+        continue-on-error: true
         if: steps.api_health.outcome == 'success'
         env:
           PLAYWRIGHT_JSON_REPORT: reports/live-api.json
         run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/api
       - name: Run live UI regression
+        id: live_ui
+        # Public environments are shared and mutable: informative, never a merge gate.
+        continue-on-error: true
         if: steps.site_health.outcome == 'success'
         env:
           PLAYWRIGHT_JSON_REPORT: reports/live-ui.json
@@ -198,6 +204,7 @@ jobs:
         env:
           TOOLSHOP_INFRA_STATUS: >-
             sut=${{ steps.sut.outcome }}; sut_api=${{ steps.sut_api.outcome }};
+            live_api=${{ steps.live_api.outcome }}; live_ui=${{ steps.live_ui.outcome }};
             api=${{ steps.api_health.outcome }}; site=${{ steps.site_health.outcome }};
             vibium_job=${{ needs.hybrid.result }}; vibium_hermetic=${{ needs.hybrid.outputs.hermetic_status }};
             vibium_site=${{ needs.hybrid.outputs.site_health }}; vibium_live=${{ needs.hybrid.outputs.live_status }}
