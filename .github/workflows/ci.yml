@@ -165,6 +165,12 @@ jobs:
         env:
           PLAYWRIGHT_JSON_REPORT: reports/sut-api.json
         run: node scripts/run-target.mjs local tests/api tests/contract
+      - name: Run E2E checkout journey on self-hosted SUT
+        id: sut_e2e
+        if: steps.sut.outcome == 'success'
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/sut-e2e.json
+        run: node scripts/run-target.mjs local tests/e2e
       - name: Dump SUT logs on failure
         if: ${{ always() && steps.sut.outcome == 'failure' }}
         run: docker compose -f docker/compose.yml logs --tail=200
@@ -204,12 +210,14 @@ jobs:
         env:
           TOOLSHOP_INFRA_STATUS: >-
             sut=${{ steps.sut.outcome }}; sut_api=${{ steps.sut_api.outcome }};
+            sut_e2e=${{ steps.sut_e2e.outcome }};
             live_api=${{ steps.live_api.outcome }}; live_ui=${{ steps.live_ui.outcome }};
             api=${{ steps.api_health.outcome }}; site=${{ steps.site_health.outcome }};
             vibium_job=${{ needs.hybrid.result }}; vibium_hermetic=${{ needs.hybrid.outputs.hermetic_status }};
             vibium_site=${{ needs.hybrid.outputs.site_health }}; vibium_live=${{ needs.hybrid.outputs.live_status }}
           TOOLSHOP_REPORT_FILES: >-
             reports/hermetic.json;reports/hermetic-hybrid.json;local=reports/sut-api.json;
+            local=reports/sut-e2e.json;
             reports/live-api.json;reports/live-ui.json;reports/vibium.json
         run: npm run report:build
       - name: Build dashboard
