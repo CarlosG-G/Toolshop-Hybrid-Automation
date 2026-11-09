@@ -91,6 +91,10 @@ export class CheckoutPage {
     await this.page.locator('[data-test="finish"]').click();
   }
 
+  finishButton(): Locator {
+    return this.page.locator('[data-test="finish"]');
+  }
+
   paymentSuccessMessage(): Locator {
     return this.page.locator('[data-test="payment-success-message"]');
   }

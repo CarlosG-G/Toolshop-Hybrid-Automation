@@ -1,4 +1,20 @@
-import type { Page, Response } from "@playwright/test";
+import type { Locator, Page, Response } from "@playwright/test";
+
+export const requiredRegisterFields = [
+  "first-name",
+  "last-name",
+  "dob",
+  "country",
+  "postal_code",
+  "house_number",
+  "street",
+  "city",
+  "state",
+  "phone",
+  "email",
+  "password",
+] as const;
+export type RegisterField = (typeof requiredRegisterFields)[number];
 
 const REGISTER_TIMEOUT_MS = 20_000;
 
@@ -11,6 +27,18 @@ export class RegisterPage {
       state: "visible",
       timeout: REGISTER_TIMEOUT_MS,
     });
+  }
+
+  async submit(): Promise<void> {
+    await this.page.locator('[data-test="register-submit"]').click();
+  }
+
+  fieldError(field: RegisterField): Locator {
+    return this.page.locator(`[data-test="${field}-error"]`);
+  }
+
+  registerError(): Locator {
+    return this.page.locator('[data-test="register-error"]');
   }
 
   async register(user: {

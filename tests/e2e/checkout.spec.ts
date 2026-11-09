@@ -6,7 +6,7 @@ import { ProductPage } from "../../src/pages/product.page.js";
 import { RegisterPage } from "../../src/pages/register.page.js";
 import { buildRegistration } from "../../src/data/factories.js";
 import { config } from "../../src/config/env.js";
-import { validPayments } from "../../src/data/payments.js";
+import { invalidPayments, validPayments } from "../../src/data/payments.js";
 
 const customer = {
   email: "customer@practicesoftwaretesting.com",
@@ -109,4 +109,32 @@ test.describe("Customer registration journey @e2e", () => {
     await login.signIn(user.email, user.password);
     await expect(page.locator('[data-test="nav-menu"]')).toBeVisible();
   });
+});
+
+test.describe("Payment form validation @e2e @negative", () => {
+  test.beforeEach(() => {
+    test.skip(
+      process.env.TOOLSHOP_LIVE !== "1" || !config.allowsWrites,
+      "Payment validation only runs against the disposable local SUT.",
+    );
+  });
+
+  test("TC-E2E-030 keeps the payment action disabled until a method is chosen", async ({
+    page,
+  }) => {
+    const checkout = await openPaymentStep(page);
+
+    await expect(checkout.finishButton()).toBeDisabled();
+  });
+
+  for (const [index, { rule, payment }] of invalidPayments.entries()) {
+    const caseId = `TC-E2E-${String(index + 31).padStart(3, "0")}`;
+    test(`${caseId} blocks payment with ${rule}`, async ({ page }) => {
+      const checkout = await openPaymentStep(page);
+      await checkout.fillPaymentDetails(payment);
+
+      await expect(checkout.finishButton()).toBeDisabled();
+      await expect(checkout.paymentSuccessMessage()).toBeHidden();
+    });
+  }
 });

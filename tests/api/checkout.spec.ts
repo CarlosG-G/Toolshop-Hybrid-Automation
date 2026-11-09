@@ -1,5 +1,5 @@
 import { billingAddress } from "../../src/data/factories.js";
-import { validPayments } from "../../src/data/payments.js";
+import { invalidPayments, validPayments } from "../../src/data/payments.js";
 import { expect, requiresWritableSut, test } from "../support/api-fixtures.js";
 
 test.describe("Cart API @api @writes", () => {
@@ -58,6 +58,15 @@ test.describe("Payment API negative partitions @api", () => {
 
     expect(result.status).toBe(422);
   });
+
+  for (const [index, { rule, payment }] of invalidPayments.entries()) {
+    const caseId = `TC-API-${String(index + 44).padStart(3, "0")}`;
+    test(`${caseId} rejects ${rule}`, async ({ api }) => {
+      const result = await api.tryCheckPayment(payment);
+
+      expect(result.status).toBe(422);
+    });
+  }
 
   test("TC-API-042 rejects an unknown payment method", async ({ api }) => {
     // DEF-002: PaymentController::check only validates the five known methods.
