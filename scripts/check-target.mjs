@@ -26,14 +26,40 @@ const checks =
     ? ["api", "site"]
     : [scope];
 const failures = [];
+const apiUrl = process.env.TOOLSHOP_API_URL ?? targets[target].api;
+const siteUrl = process.env.TOOLSHOP_SITE_URL ?? targets[target].site;
+
+async function checkApi(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+  }
+}
+
+async function checkSite(url) {
+  const { chromium } = await import("@playwright/test");
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    const response = await page.goto(url, {
+      waitUntil: "domcontentloaded",
+      timeout: 15_000,
+    });
+    if (!response) {
+      throw new Error("Site navigation returned no HTTP response.");
+    }
+    if (!response.ok()) {
+      throw new Error(`HTTP ${response.status()} ${response.statusText()}`);
+    }
+  } finally {
+    await browser.close();
+  }
+}
 
 for (const check of checks) {
-  const url = check === "api" ? `${targets[target].api}/products` : targets[target].site;
+  const url = check === "api" ? `${apiUrl}/products` : siteUrl;
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} ${response.statusText}`);
-    }
+    await (check === "api" ? checkApi(url) : checkSite(url));
     console.log(`Toolshop ${check} "${target}" is available (${url}).`);
   } catch (error) {
     console.error(`Toolshop ${check} "${target}" is unavailable:`, error);

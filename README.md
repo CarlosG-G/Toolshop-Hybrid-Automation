@@ -52,7 +52,8 @@ npm run test:with-bugs
 ```
 
 The workflow health-gates API and UI suites independently; a failure in one
-target does not suppress checks against the other. The cross-browser command
+target does not suppress checks against the other. The UI health check uses
+Playwright Chromium, matching the live browser tests. The cross-browser command
 checks the UI before it starts.
 
 The `stable` and `with-bugs` targets can also be selected with
@@ -60,7 +61,8 @@ The `stable` and `with-bugs` targets can also be selected with
 operations without an explicit disposable-data and cleanup strategy.
 
 Set `TOOLSHOP_SITE_URL` and `TOOLSHOP_API_URL` to use another compatible
-environment. Invalid target names fail explicitly.
+environment for both health checks and tests. Invalid target names fail
+explicitly.
 
 ## Test suites
 
