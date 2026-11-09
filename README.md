@@ -41,9 +41,9 @@ npm run test:hybrid:hermetic
 Hermetic tests run against a local fixture and deterministic mocked API. They
 do not depend on Toolshop being available. Playwright is the always-on gate;
 the separate hybrid smoke also exercises Vibium and is informational in CI.
-If that smoke fails, CI logs Chrome startup and shared-library diagnostics.
-On restricted Ubuntu runners, CI uses the preinstalled Chrome sandbox helper
-instead of disabling the browser sandbox.
+CI runs the Vibium and hybrid smokes on Windows and the Playwright gate on
+Linux, keeping Chrome's sandbox enabled. Hybrid test evidence and the combined
+report are uploaded as artifacts.
 
 ## Live tests
 
@@ -58,13 +58,14 @@ npm run test:with-bugs
 
 The workflow health-gates API and UI suites independently; a failure in one
 target does not suppress checks against the other. The UI health check uses
-Playwright Chromium, matching the live browser tests. The cross-browser command
+Playwright Chromium, matching the live browser tests, and runs separately on
+Linux and Windows for their respective UI suites. The cross-browser command
 checks the UI before it starts.
 
 Some hosted runners receive HTTP 403 from the public site. The report marks the
-site unavailable and skips live UI and Vibium checks in that case; the local
-hybrid smoke still runs. Run live tests locally where access is allowed or use
-an authorized compatible deployment.
+affected site's check as unavailable and skips that runner's live UI checks;
+the hermetic hybrid smoke still runs. Run live tests locally where access is
+allowed or use an authorized compatible deployment.
 
 The `stable` and `with-bugs` targets can also be selected with
 `TOOLSHOP_TARGET`. Live tests use the public catalog only; do not add write
@@ -89,7 +90,7 @@ traces, screenshots, and HTML reports are retained as CI artifacts.
 ## Reporting and GitHub Actions
 
 - `ci.yml` runs typecheck, hermetic tests, a health-gated read-only live suite,
-  and an informational Vibium/hybrid smoke.
+  and informational Vibium/hybrid smokes on Windows.
 - `nightly.yml` compares the stable and intentionally buggy Toolshop targets.
 - The unified JSON/Markdown report appears in the Actions Summary and artifacts.
 - When Pages is enabled for the repository, a dashboard can be published from

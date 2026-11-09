@@ -47,7 +47,82 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  hybrid:
+    name: Vibium and hybrid smoke
+    runs-on: windows-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+    env:
+      TOOLSHOP_TARGET: ${{ inputs.target || 'stable' }}
+    outputs:
+      report_artifact: toolshop-${{ inputs.target || 'stable' }}-hybrid-reports-${{ github.run_attempt }}
+      hermetic_status: ${{ steps.hermetic_hybrid.outcome }}
+      site_health: ${{ steps.site_health.outcome }}
+      live_status: ${{ steps.live_vibium.outcome }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npx vibium install
+      - name: Run hermetic hybrid smoke
+        id: hermetic_hybrid
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/hermetic-hybrid.json
+        run: npm run test:hybrid:hermetic
+      - name: Upload hermetic hybrid evidence
+        if: ${{ always() && steps.hermetic_hybrid.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-hermetic-hybrid-evidence-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Check target UI health for Vibium
+        id: site_health
+        continue-on-error: true
+        run: npm run healthcheck:site
+      - name: Run live Vibium and hybrid smoke
+        id: live_vibium
+        if: steps.site_health.outcome == 'success'
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/vibium.json
+        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/vibium tests/hybrid
+      - name: Upload live Vibium evidence
+        if: ${{ always() && steps.live_vibium.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-live-vibium-evidence-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Record unavailable Vibium target
+        if: ${{ always() && steps.site_health.outcome != 'success' }}
+        run: '"Vibium live checks did not run because their UI health check did not pass." >> $env:GITHUB_STEP_SUMMARY'
+      - name: Upload hybrid reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-hybrid-reports-${{ github.run_attempt }}
+          path: |
+            reports/hermetic-hybrid.json
+            reports/vibium.json
+          if-no-files-found: warn
+          retention-days: 14
+
   test:
+    needs: hybrid
+    if: ${{ always() && needs.hybrid.result != 'cancelled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -68,48 +143,17 @@ jobs:
       - name: Install additional Playwright browsers
         if: inputs.browser_matrix
         run: npx playwright install --with-deps firefox webkit
-      - name: Install Vibium Chrome
-        run: npx vibium install
-      - name: Configure Vibium Chrome sandbox
-        run: |
-          restriction=/proc/sys/kernel/apparmor_restrict_unprivileged_userns
-          helper=/opt/google/chrome/chrome-sandbox
-          if [ -r "$restriction" ] && [ "$(cat "$restriction")" = "1" ]; then
-            if [ -x "$helper" ] && [ -u "$helper" ] && [ "$(stat -c %u "$helper")" = "0" ]; then
-              echo "CHROME_DEVEL_SANDBOX=$helper" >> "$GITHUB_ENV"
-              echo "Using the preinstalled Chrome sandbox helper."
-            else
-              echo "::warning::No usable Chrome sandbox helper; Vibium may be unavailable."
-            fi
-          else
-            echo "No AppArmor user namespace restriction detected."
-          fi
+      - name: Download hybrid reports
+        if: ${{ always() && needs.hybrid.outputs.report_artifact != '' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.hybrid.outputs.report_artifact }}
+          path: reports
       - name: Run hermetic gate
         env:
           PLAYWRIGHT_JSON_REPORT: reports/hermetic.json
         run: npm run test:hermetic
-      - name: Run hermetic hybrid smoke (informational)
-        id: hermetic_hybrid
-        continue-on-error: true
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/hermetic-hybrid.json
-        run: npm run test:hybrid:hermetic
-      - name: Diagnose Vibium Chrome startup
-        if: steps.hermetic_hybrid.outcome == 'failure'
-        continue-on-error: true
-        run: |
-          chrome=$(find "$HOME/.cache/vibium/chrome-for-testing" -maxdepth 2 -type f -name chrome -print -quit)
-          if [ -z "$chrome" ] || [ ! -x "$chrome" ]; then
-            echo "::error::Vibium Chrome binary was not found or is not executable."
-            exit 1
-          fi
-          libraries=$(ldd "$chrome")
-          if grep -q 'not found' <<< "$libraries"; then
-            printf '%s\n' "$libraries" | grep 'not found'
-          else
-            echo "No missing Chrome shared libraries."
-          fi
-          timeout 15s "$chrome" --headless --disable-gpu --dump-dom about:blank
       - name: Check public API health
         id: api_health
         continue-on-error: true
@@ -128,12 +172,6 @@ jobs:
         env:
           PLAYWRIGHT_JSON_REPORT: reports/live-ui.json
         run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/e2e
-      - name: Run Vibium and hybrid smoke (informational)
-        if: steps.site_health.outcome == 'success'
-        continue-on-error: true
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/vibium.json
-        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/vibium tests/hybrid
       - name: Record unavailable external target
         if: steps.api_health.outcome != 'success' || steps.site_health.outcome != 'success'
         run: |
@@ -141,7 +179,10 @@ jobs:
       - name: Build unified report
         if: always()
         env:
-          TOOLSHOP_INFRA_STATUS: api=${{ steps.api_health.outcome }}; site=${{ steps.site_health.outcome }}
+          TOOLSHOP_INFRA_STATUS: >-
+            api=${{ steps.api_health.outcome }}; site=${{ steps.site_health.outcome }};
+            vibium_job=${{ needs.hybrid.result }}; vibium_hermetic=${{ needs.hybrid.outputs.hermetic_status }};
+            vibium_site=${{ needs.hybrid.outputs.site_health }}; vibium_live=${{ needs.hybrid.outputs.live_status }}
           TOOLSHOP_REPORT_FILES: >-
             reports/hermetic.json;reports/hermetic-hybrid.json;
             reports/live-api.json;reports/live-ui.json;reports/vibium.json

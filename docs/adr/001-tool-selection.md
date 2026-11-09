@@ -17,6 +17,8 @@ store, so automated runs must not create persistent customer or order data.
   separate Vibium browser session, which checks the product heading semantically.
 - A second hybrid smoke hands the local fixture URL from Playwright to Vibium and
   checks the cart without relying on the public target.
+- CI runs Vibium smokes on Windows to retain Chrome's sandbox on hosted runners;
+  the Playwright gate remains on Linux and combines both platforms' reports.
 - Vibium MCP may expose browser controls to a separately configured AI client;
   CI does not invoke an LLM. The current CLI's `check` command operates on
   checkboxes, not natural-language assertions, and does not provide a `run`
