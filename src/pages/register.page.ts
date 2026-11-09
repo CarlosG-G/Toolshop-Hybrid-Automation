@@ -20,13 +20,23 @@ export class RegisterPage {
     phone: string;
     email: string;
     password: string;
+    address: {
+      street: string;
+      city: string;
+      state: string;
+      country: string;
+      postal_code: string;
+    };
   }): Promise<Response> {
     await this.page.locator('[data-test="first-name"]').fill(user.first_name);
     await this.page.locator('[data-test="last-name"]').fill(user.last_name);
     await this.page.locator('[data-test="dob"]').fill(user.dob);
-    await this.page.locator('[data-test="country"]').selectOption("ES");
-    await this.page.locator('[data-test="postal_code"]').fill("41004");
+    await this.page.locator('[data-test="country"]').selectOption(user.address.country);
+    await this.page.locator('[data-test="postal_code"]').fill(user.address.postal_code);
     await this.page.locator('[data-test="house_number"]').fill("1");
+    await this.page.locator('[data-test="street"]').fill(user.address.street);
+    await this.page.locator('[data-test="city"]').fill(user.address.city);
+    await this.page.locator('[data-test="state"]').fill(user.address.state);
     await this.page.locator('[data-test="phone"]').fill(user.phone);
     await this.page.locator('[data-test="email"]').fill(user.email);
     await this.page.locator('[data-test="password"]').fill(user.password);
