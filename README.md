@@ -42,6 +42,8 @@ Hermetic tests run against a local fixture and deterministic mocked API. They
 do not depend on Toolshop being available. Playwright is the always-on gate;
 the separate hybrid smoke also exercises Vibium and is informational in CI.
 If that smoke fails, CI logs Chrome startup and shared-library diagnostics.
+On restricted Ubuntu runners, CI uses the preinstalled Chrome sandbox helper
+instead of disabling the browser sandbox.
 
 ## Live tests
 

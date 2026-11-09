@@ -70,6 +70,20 @@ jobs:
         run: npx playwright install --with-deps firefox webkit
       - name: Install Vibium Chrome
         run: npx vibium install
+      - name: Configure Vibium Chrome sandbox
+        run: |
+          restriction=/proc/sys/kernel/apparmor_restrict_unprivileged_userns
+          helper=/opt/google/chrome/chrome-sandbox
+          if [ -r "$restriction" ] && [ "$(cat "$restriction")" = "1" ]; then
+            if [ -x "$helper" ] && [ -u "$helper" ] && [ "$(stat -c %u "$helper")" = "0" ]; then
+              echo "CHROME_DEVEL_SANDBOX=$helper" >> "$GITHUB_ENV"
+              echo "Using the preinstalled Chrome sandbox helper."
+            else
+              echo "::warning::No usable Chrome sandbox helper; Vibium may be unavailable."
+            fi
+          else
+            echo "No AppArmor user namespace restriction detected."
+          fi
       - name: Run hermetic gate
         env:
           PLAYWRIGHT_JSON_REPORT: reports/hermetic.json
