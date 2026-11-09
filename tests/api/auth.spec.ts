@@ -13,10 +13,21 @@ test.describe("Authentication API @api", () => {
   });
 
   test("TC-API-011 rejects a wrong password with 401", async ({ api }) => {
+    // Never brute-force shared public accounts: repeated failures lock them (HTTP 423).
+    requiresWritableSut();
     const result = await api.tryLogin({ ...customer, password: "wrong-password" });
 
     expect(result.status).toBe(401);
     expect(result.body.access_token).toBeUndefined();
+  });
+
+  test("TC-API-014 rejects an unknown email with 401", async ({ api }) => {
+    const result = await api.tryLogin({
+      email: `unknown-${Date.now()}@example.test`,
+      password: "Whatever-123!",
+    });
+
+    expect(result.status).toBe(401);
   });
 
   test("TC-API-012 rejects /users/me without a token", async ({ api }) => {
