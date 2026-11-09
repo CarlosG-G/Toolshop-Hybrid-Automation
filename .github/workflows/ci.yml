@@ -75,10 +75,27 @@ jobs:
           PLAYWRIGHT_JSON_REPORT: reports/hermetic.json
         run: npm run test:hermetic
       - name: Run hermetic hybrid smoke (informational)
+        id: hermetic_hybrid
         continue-on-error: true
         env:
           PLAYWRIGHT_JSON_REPORT: reports/hermetic-hybrid.json
         run: npm run test:hybrid:hermetic
+      - name: Diagnose Vibium Chrome startup
+        if: steps.hermetic_hybrid.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          chrome=$(find "$HOME/.cache/vibium/chrome-for-testing" -maxdepth 2 -type f -name chrome -print -quit)
+          if [ -z "$chrome" ] || [ ! -x "$chrome" ]; then
+            echo "::error::Vibium Chrome binary was not found or is not executable."
+            exit 1
+          fi
+          libraries=$(ldd "$chrome")
+          if grep -q 'not found' <<< "$libraries"; then
+            printf '%s\n' "$libraries" | grep 'not found'
+          else
+            echo "No missing Chrome shared libraries."
+          fi
+          timeout 15s "$chrome" --headless --disable-gpu --dump-dom about:blank
       - name: Check public API health
         id: api_health
         continue-on-error: true
