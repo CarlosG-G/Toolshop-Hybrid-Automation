@@ -79,7 +79,7 @@ test.describe("Authenticated checkout journey @e2e @smoke", () => {
       await checkout.confirmOrder();
 
       const response = await invoiceResponse;
-      expect(response.status()).toBe(200);
+      expect(response.status()).toBe(201);
       const invoiceNumber = invoiceNumberFrom(await response.json());
       await expect(checkout.orderConfirmation()).toContainText(invoiceNumber);
     });
