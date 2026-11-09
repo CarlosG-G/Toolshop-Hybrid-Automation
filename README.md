@@ -95,7 +95,7 @@ traces, screenshots, and HTML reports are retained as CI artifacts.
 - The unified JSON/Markdown report appears in the Actions Summary and artifacts.
 - When Pages is enabled for the repository, a dashboard can be published from
   the on-demand workflow or a push to `main`. It lists reports not produced
-  separately from skipped test cases.
+  separately from skipped test cases and requests fresh data on each load.
 - No AI or application secrets are required.
 
 For manual Vibium exploration, follow [the catalog charter](charters/catalog.md).
