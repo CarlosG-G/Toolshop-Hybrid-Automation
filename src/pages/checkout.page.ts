@@ -14,6 +14,12 @@ export class CheckoutPage {
 
   async continueToPayment(): Promise<void> {
     await this.page.locator('[data-test="proceed-2"]').click();
+    const proceedToPayment = this.page.locator('[data-test="proceed-3"]');
+    await proceedToPayment.waitFor({
+      state: "visible",
+      timeout: CHECKOUT_TIMEOUT_MS,
+    });
+    await proceedToPayment.click();
     await this.paymentMethod().waitFor({
       state: "visible",
       timeout: CHECKOUT_TIMEOUT_MS,

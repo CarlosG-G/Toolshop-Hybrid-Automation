@@ -6,6 +6,10 @@ test("WB-01: detects the missing heading or searches the live catalog", async ({
   page,
 }) => {
   test.skip(process.env.TOOLSHOP_LIVE !== "1", "Live UI suite is opt-in.");
+  test.skip(
+    config.target === "local",
+    "This comparison is for the public stable/with-bugs targets.",
+  );
   test.setTimeout(90_000);
 
   await page.goto(config.siteUrl, {
