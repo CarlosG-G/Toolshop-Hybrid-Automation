@@ -34,17 +34,14 @@ test.describe("Resilience under injected network faults @resilience @nonfunction
   });
 
   test("TC-RES-003 recovers once the API is reachable again", async ({ page }) => {
-    let failures = 1;
-    await page.route(productsApi, async (route) => {
-      if (failures > 0) {
-        failures -= 1;
-        await route.abort("connectionrefused");
-        return;
-      }
-      await route.continue();
+    const firstCall = page.waitForRequest(productsApi);
+    await page.route(productsApi, (route) => route.abort("connectionrefused"), {
+      times: 1,
     });
 
     await page.goto(config.siteUrl);
+    await firstCall;
+    await expect(page.locator(productNames)).toHaveCount(0);
     await page.reload();
 
     await expect(page.locator(productNames).first()).toBeVisible();

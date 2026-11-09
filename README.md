@@ -84,6 +84,8 @@ explicitly.
 | `tests/api`, `tests/contract`  | Playwright          | Blocking regression on the disposable SUT; public checks are informational                  |
 | `tests/e2e`                    | Playwright          | Registration and checkout on the disposable SUT; public catalog comparison is informational |
 | `tests/vibium`, `tests/hybrid` | Vibium + Playwright | Live; informational in CI                                                                   |
+| `tests/security`               | Playwright          | OWASP API Top 10 checks (authN/authZ, JWT tampering, injection, data exposure) on the SUT   |
+| `tests/nonfunctional`          | Playwright + axe    | Accessibility, performance budgets, mobile layout and fault-injection resilience on the SUT |
 
 `tests/mocked` also runs axe-core against the deterministic fixture. Playwright
 traces, screenshots, and HTML reports are retained as CI artifacts.
@@ -93,6 +95,23 @@ delivery, credit card, buy-now-pay-later, and gift card (`TC-E2E-010` to `TC-E2E
 Each case starts with a fresh browser/cart, checks payment, confirms the order,
 and verifies that the UI displays the invoice number returned by the API.
 Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are modified.
+
+### Test types and design techniques
+
+| Type                          | Where                                                        | ISTQB technique / standard                         |
+| ----------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| Positive functional (API, UI) | `tests/api`, `tests/e2e`                                     | Use-case testing, data-driven equivalence classes  |
+| Negative and validation       | `tests/api/robustness.spec.ts`, `tests/e2e/negative.spec.ts` | Equivalence partitioning, BVA, error guessing      |
+| Payment rule partitions       | `src/data/payments.ts` (shared by API and UI)                | Invalid partitions per field, client/server parity |
+| Contract                      | `tests/contract`                                             | OpenAPI schema validation                          |
+| Security                      | `tests/security`                                             | OWASP API Security Top 10                          |
+| Accessibility                 | `tests/nonfunctional/accessibility.spec.ts`                  | WCAG 2.1 AA with axe-core                          |
+| Performance                   | `tests/nonfunctional/performance.spec.ts`                    | p95 latency budget, concurrency smoke              |
+| Mobile / responsive           | `tests/nonfunctional/responsive.spec.ts`                     | Viewport overflow and navigation usability         |
+| Resilience                    | `tests/nonfunctional/resilience.spec.ts`                     | Fault injection (latency, 5xx, connection refused) |
+
+Defects found by these suites are tracked in the [defect log](docs/test-management/defect-log.md);
+their detecting tests use `test.fail()` so the pipeline turns red as soon as behaviour changes.
 
 With Docker Compose available, run the same suite locally:
 

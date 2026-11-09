@@ -167,7 +167,7 @@ jobs:
         run: node scripts/run-target.mjs local tests/api tests/contract tests/security
       - name: Run E2E checkout journey on self-hosted SUT
         id: sut_e2e
-        if: steps.sut.outcome == 'success'
+        if: always() && steps.sut.outcome == 'success'
         env:
           PLAYWRIGHT_JSON_REPORT: reports/sut-e2e.json
         run: node scripts/run-target.mjs local tests/e2e

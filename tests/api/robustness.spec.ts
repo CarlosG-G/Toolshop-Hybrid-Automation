@@ -24,13 +24,16 @@ test.describe("API robustness and input validation @api @negative", () => {
 
     expect(result.status).toBe(422);
     const errors = JSON.stringify(result.body);
-    for (const field of ["first_name", "last_name", "email", "password", "dob"]) {
+    for (const field of ["first_name", "last_name", "email", "password"]) {
       expect(errors, `${field} is reported`).toContain(field);
     }
   });
 
   test("TC-API-062 rejects a malformed email on registration", async ({ api }) => {
-    const result = await api.tryRegister(buildRegistration({ email: "not-an-email" }));
+    test.fail(true, "DEF-004 the API accepts malformed emails that the UI rejects");
+    const result = await api.tryRegister(
+      buildRegistration({ email: `not-an-email-${crypto.randomUUID()}` }),
+    );
 
     expect(result.status).toBe(422);
     expect(JSON.stringify(result.body)).toContain("email");

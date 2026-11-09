@@ -9,12 +9,19 @@ const pages = [
     path: "/",
     ready: '[data-test="product-name"]',
   },
-  { id: "TC-A11Y-002", name: "login", path: "/auth/login", ready: '[data-test="email"]' },
+  {
+    id: "TC-A11Y-002",
+    name: "login",
+    path: "/auth/login",
+    ready: '[data-test="email"]',
+    knownDefect: "DEF-005 icon-only button without an accessible name",
+  },
   {
     id: "TC-A11Y-003",
     name: "registration",
     path: "/auth/register",
     ready: '[data-test="first-name"]',
+    knownDefect: "DEF-005 icon-only button without an accessible name",
   },
   {
     id: "TC-A11Y-004",
@@ -31,6 +38,7 @@ test.describe("WCAG 2.1 AA accessibility @a11y @nonfunctional", () => {
     test(`${target.id} ${target.name} page has no critical WCAG violations`, async ({
       page,
     }, testInfo) => {
+      test.fail(Boolean(target.knownDefect), target.knownDefect);
       await page.goto(`${config.siteUrl}${target.path}`);
       await page.locator(target.ready).first().waitFor({ state: "visible" });
 
@@ -44,7 +52,12 @@ test.describe("WCAG 2.1 AA accessibility @a11y @nonfunctional", () => {
 
       const critical = results.violations
         .filter((violation) => violation.impact === "critical")
-        .map((violation) => `${violation.id}: ${violation.help}`);
+        .map(
+          (violation) =>
+            `${violation.id}: ${violation.help} -> ${violation.nodes
+              .map((node) => node.target.join(" "))
+              .join(", ")}`,
+        );
       expect(critical).toEqual([]);
     });
   }
