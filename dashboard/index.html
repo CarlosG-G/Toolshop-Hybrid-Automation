@@ -28,7 +28,12 @@
       <div class="card">Detected <span class="value" id="detected">—</span></div>
       <div class="card">Failed <span class="value" id="failed">—</span></div>
       <div class="card">Flaky <span class="value" id="flaky">—</span></div>
-      <div class="card">Skipped <span class="value" id="skipped">—</span></div>
+      <div class="card">Skipped cases <span class="value" id="skipped">—</span></div>
+    </section>
+    <section id="missing-reports" aria-labelledby="missing-reports-title" hidden>
+      <h2 id="missing-reports-title">Reports not produced</h2>
+      <p class="muted">These reports were not produced; their test cases are not included in the totals.</p>
+      <ul id="missing-report-list"></ul>
     </section>
     <section>
       <h2>Test evidence</h2>
@@ -42,12 +47,25 @@
           return response.json();
         })
         .then((report) => {
+          if (!Array.isArray(report.missingReports) ||
+              report.missingReports.some((path) => typeof path !== "string")) {
+            throw new Error("Report missing or invalid: missingReports must be a list of paths.");
+          }
           document.querySelector("#passed").textContent = report.totals.passed;
           document.querySelector("#detected").textContent = report.totals.detected;
           document.querySelector("#failed").textContent = report.totals.failed;
           document.querySelector("#flaky").textContent = report.totals.flaky;
           document.querySelector("#skipped").textContent = report.totals.skipped;
           status.textContent = `Target: ${report.target} · Infrastructure: ${report.infrastructure} · ${report.generatedAt}`;
+          if (report.missingReports.length > 0) {
+            const list = document.querySelector("#missing-report-list");
+            for (const path of report.missingReports) {
+              const item = document.createElement("li");
+              item.textContent = path;
+              list.append(item);
+            }
+            document.querySelector("#missing-reports").hidden = false;
+          }
           const container = document.querySelector("#cases");
           if (report.cases.length === 0) {
             container.textContent = "No individual test cases were reported.";
