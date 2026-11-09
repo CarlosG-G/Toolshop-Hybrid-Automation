@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 import { CatalogPage } from "../../src/pages/catalog.page.js";
 import { config } from "../../src/config/env.js";
 
-test("WB-01: detects the missing heading or searches the live catalog", async ({ page }) => {
+test("WB-01: detects the missing heading or searches the live catalog", async ({
+  page,
+}) => {
   test.skip(process.env.TOOLSHOP_LIVE !== "1", "Live UI suite is opt-in.");
   test.setTimeout(90_000);
 

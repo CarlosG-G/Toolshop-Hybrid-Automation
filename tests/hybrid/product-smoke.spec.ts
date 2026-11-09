@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { browser } from "vibium";
 import { CatalogPage } from "../../src/pages/catalog.page.js";
 import { config } from "../../src/config/env.js";
-import { findSemanticHeadings } from "../../src/vibium/semantic.js";
+import { assertVibiumVisible, findSemanticHeadings } from "../../src/vibium/semantic.js";
 
 test("WB-01: Playwright and Vibium check the same catalog heading", async ({
   page: playwrightPage,
@@ -56,7 +56,7 @@ test("WB-01: Playwright and Vibium check the same catalog heading", async ({
       role: "heading",
       text: "Combination Pliers",
     });
-    expect(await product.isVisible()).toBe(true);
+    await assertVibiumVisible(product, "Combination Pliers heading");
   } finally {
     await vibiumSession.stop();
   }

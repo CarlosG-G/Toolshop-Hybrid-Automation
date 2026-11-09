@@ -1,13 +1,11 @@
-import AxeBuilder from "@axe-core/playwright";
+import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 test("mock catalog has no serious accessibility violations", async ({ page }) => {
   await page.route("**/api/products", (route) =>
     route.fulfill({
       json: {
-        data: [
-          { id: "pliers-1", name: "Combination Pliers", price: 14.15 },
-        ],
+        data: [{ id: "pliers-1", name: "Combination Pliers", price: 14.15 }],
       },
     }),
   );

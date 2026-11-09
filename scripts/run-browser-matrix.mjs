@@ -4,17 +4,18 @@ const env = {
   ...process.env,
   TOOLSHOP_TARGET: "stable",
 };
-const health = spawnSync(
-  process.execPath,
-  ["scripts/check-target.mjs", "site"],
-  { stdio: "inherit", env },
-);
+const health = spawnSync(process.execPath, ["scripts/check-target.mjs", "site"], {
+  stdio: "inherit",
+  env,
+});
 if (health.error) {
   console.error("Could not check the Toolshop site:", health.error);
   process.exit(1);
 }
 if (health.status !== 0) {
-  console.error("Cross-browser live tests were not started because the site is unavailable.");
+  console.error(
+    "Cross-browser live tests were not started because the site is unavailable.",
+  );
   process.exit(1);
 }
 

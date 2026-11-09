@@ -7,10 +7,12 @@ export class CatalogPage {
 
   async open(url: string): Promise<void> {
     await this.page.goto(url);
-    await this.page.getByRole("heading", {
-      name: "Practice Software Testing - Toolshop",
-      level: 1,
-    }).waitFor();
+    await this.page
+      .getByRole("heading", {
+        name: "Practice Software Testing - Toolshop",
+        level: 1,
+      })
+      .waitFor();
   }
 
   async waitUntilLoaded(): Promise<void> {

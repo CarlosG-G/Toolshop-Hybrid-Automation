@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { browser } from "vibium";
+import { assertVibiumVisible } from "../../src/vibium/semantic.js";
 
 test("Playwright and Vibium exercise the local catalog together", async ({ page }) => {
   test.setTimeout(60_000);
@@ -19,7 +20,7 @@ test("Playwright and Vibium exercise the local catalog together", async ({ page 
     });
     await addToCart.click();
     const cart = await vibiumPage.find({ role: "button", text: "Cart 1" });
-    expect(await cart.isVisible()).toBe(true);
+    await assertVibiumVisible(cart, "Cart 1 button");
   } finally {
     await session.stop();
   }

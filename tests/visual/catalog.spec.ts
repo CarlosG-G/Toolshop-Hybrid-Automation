@@ -5,9 +5,7 @@ test.skip(
   "The visual baseline is maintained for Windows Chromium only.",
 );
 
-test("mock catalog layout matches its Windows Chromium baseline", async ({
-  page,
-}) => {
+test("mock catalog layout matches its Windows Chromium baseline", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.route("**/api/products", (route) =>
     route.fulfill({

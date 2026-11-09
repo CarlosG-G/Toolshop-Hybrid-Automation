@@ -2,7 +2,9 @@ import { spawnSync } from "node:child_process";
 
 const target = process.argv[2];
 if (target !== "stable" && target !== "with-bugs") {
-  console.error('Usage: node scripts/run-target.mjs "stable|with-bugs" [Playwright args...]');
+  console.error(
+    'Usage: node scripts/run-target.mjs "stable|with-bugs" [Playwright args...]',
+  );
   process.exit(2);
 }
 

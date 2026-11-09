@@ -14,7 +14,9 @@ function dashboardReport(missingReports: unknown, passed = 1) {
     infrastructure: "site=failure",
     generatedAt: "2026-01-01T00:00:00.000Z",
     totals: { passed, detected: 0, failed: 0, flaky: 0, skipped: 0 },
-    cases: [{ target: "stable", title: "Hermetic gate", status: "passed", durationMs: 5 }],
+    cases: [
+      { target: "stable", title: "Hermetic gate", status: "passed", durationMs: 5 },
+    ],
     missingReports,
   };
 }
@@ -40,7 +42,9 @@ test("shows reports not produced separately from skipped cases", async ({ page }
   await expect(page.getByRole("heading", { name: "Reports not produced" })).toBeVisible();
   await expect(page.getByText("reports/live-ui.json")).toBeVisible();
   await expect(page.getByText("reports/vibium.json")).toBeVisible();
-  await expect(page.getByText("their test cases are not included in the totals")).toBeVisible();
+  await expect(
+    page.getByText("their test cases are not included in the totals"),
+  ).toBeVisible();
   await expect(page.getByText("Skipped cases")).toBeVisible();
   await expect(page.locator("#skipped")).toHaveText("0");
   await expect(page.getByText("Hermetic gate")).toBeVisible();

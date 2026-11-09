@@ -31,7 +31,9 @@ function playwrightReport(title: string, outcome: "expected" | "unexpected") {
               {
                 outcome,
                 expectedStatus: "passed",
-                results: [{ status: outcome === "expected" ? "passed" : "failed", duration: 5 }],
+                results: [
+                  { status: outcome === "expected" ? "passed" : "failed", duration: 5 },
+                ],
               },
             ],
           },
@@ -71,7 +73,10 @@ async function buildReport(files: Record<string, string>, status = infrastructur
     const report: unknown = JSON.parse(
       await readFile(join(directory, "reports", "unified-report.json"), "utf8"),
     );
-    const markdown = await readFile(join(directory, "reports", "unified-report.md"), "utf8");
+    const markdown = await readFile(
+      join(directory, "reports", "unified-report.md"),
+      "utf8",
+    );
     return { report, markdown };
   } finally {
     await rm(directory, { recursive: true, force: true });

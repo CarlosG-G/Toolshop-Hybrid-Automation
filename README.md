@@ -77,12 +77,12 @@ explicitly.
 
 ## Test suites
 
-| Suite | Owner | Default behavior |
-| --- | --- | --- |
-| `tests/unit`, `tests/mocked` | Playwright | Hermetic; runs in CI |
-| `tests/hermetic` | Playwright + Vibium | Hermetic; informational in CI |
-| `tests/api`, `tests/e2e` | Playwright | Live; runs only after a successful health check |
-| `tests/vibium`, `tests/hybrid` | Vibium + Playwright | Live; informational in CI |
+| Suite                          | Owner               | Default behavior                                |
+| ------------------------------ | ------------------- | ----------------------------------------------- |
+| `tests/unit`, `tests/mocked`   | Playwright          | Hermetic; runs in CI                            |
+| `tests/hermetic`               | Playwright + Vibium | Hermetic; informational in CI                   |
+| `tests/api`, `tests/e2e`       | Playwright          | Live; runs only after a successful health check |
+| `tests/vibium`, `tests/hybrid` | Vibium + Playwright | Live; informational in CI                       |
 
 `tests/mocked` also runs axe-core against the deterministic fixture. Playwright
 traces, screenshots, and HTML reports are retained as CI artifacts.

@@ -9,9 +9,7 @@ const mockProducts = {
 };
 
 test("searches the mocked catalog and updates the cart", async ({ page }) => {
-  await page.route("**/api/products", (route) =>
-    route.fulfill({ json: mockProducts }),
-  );
+  await page.route("**/api/products", (route) => route.fulfill({ json: mockProducts }));
 
   await page.goto("http://127.0.0.1:4173/");
   await expect(page.getByRole("status")).toHaveText("2 products");
@@ -35,9 +33,7 @@ test("shows a loading state while the catalog API is slow", async ({ page }) => 
   await expect(page.getByRole("status")).toHaveText("2 products");
 });
 
-test("reports a catalog API failure without showing stale products", async ({
-  page,
-}) => {
+test("reports a catalog API failure without showing stale products", async ({ page }) => {
   await page.route("**/api/products", (route) =>
     route.fulfill({
       status: 503,

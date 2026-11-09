@@ -24,15 +24,29 @@
     "healthcheck:api": "node scripts/check-target.mjs api",
     "healthcheck:site": "node scripts/check-target.mjs site",
     "report:build": "tsx scripts/build-report.ts",
-    "dashboard:build": "tsx scripts/build-dashboard.ts"
+    "dashboard:build": "tsx scripts/build-dashboard.ts",
+    "lint": "oxlint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky || true",
+    "sut:up": "node scripts/sut.mjs up",
+    "sut:down": "node scripts/sut.mjs down",
+    "sut:reset": "node scripts/sut.mjs reset",
+    "test:local": "node scripts/run-target.mjs local"
   },
   "dependencies": {
     "vibium": "26.8.21"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
     "@playwright/test": "1.65.0",
     "@types/node": "26.6.6",
+    "eslint-plugin-playwright": "^2.12.2",
+    "husky": "^9.1.7",
+    "oxlint": "^1.93.0",
+    "prettier": "^3.9.10",
     "tsx": "4.23.15",
     "typescript": "7.0.2"
   },

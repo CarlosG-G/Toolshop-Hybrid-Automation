@@ -74,18 +74,16 @@ function collectCases(
               : "passed"
             : testCase.outcome === "unexpected"
               ? "failed"
-              : testCase.outcome ??
+              : (testCase.outcome ??
                 (lastResult?.status === "passed"
                   ? "passed"
                   : lastResult?.status === "skipped"
                     ? "skipped"
-                    : lastResult?.status ?? "unknown");
+                    : (lastResult?.status ?? "unknown")));
         const classifiedStatus =
           target === "with-bugs" &&
           status === "passed" &&
-          [spec.title, testCase.title].some((title) =>
-            title?.includes("WB-01"),
-          )
+          [spec.title, testCase.title].some((title) => title?.includes("WB-01"))
             ? "detected"
             : status;
         return {
@@ -97,16 +95,11 @@ function collectCases(
         };
       }),
     );
-    return [
-      ...current,
-      ...collectCases(suite.suites ?? [], source, target, suitePath),
-    ];
+    return [...current, ...collectCases(suite.suites ?? [], source, target, suitePath)];
   });
 }
 
-const sourceEntries = (
-  process.env.TOOLSHOP_REPORT_FILES ?? "reports/playwright.json"
-)
+const sourceEntries = (process.env.TOOLSHOP_REPORT_FILES ?? "reports/playwright.json")
   .split(";")
   .map((entry) => entry.trim())
   .filter(Boolean)
@@ -151,10 +144,7 @@ for (const { path, target } of sourceEntries) {
   reportCases.push(...collectCases(report.suites ?? [], path, target));
 }
 
-if (
-  reportCases.length === 0 &&
-  missingReports.length === sourceEntries.length
-) {
+if (reportCases.length === 0 && missingReports.length === sourceEntries.length) {
   const expected = sourceEntries.map((entry) => entry.path).join(", ");
   throw new Error(`No Playwright report was produced. Expected: ${expected}`);
 }

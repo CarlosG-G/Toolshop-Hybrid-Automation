@@ -17,14 +17,13 @@ if (!Object.hasOwn(targets, target)) {
 
 const scope = process.argv[2] ?? "both";
 if (scope !== "api" && scope !== "site" && scope !== "both") {
-  console.error(`Unsupported health check scope "${scope}". Expected api, site, or both.`);
+  console.error(
+    `Unsupported health check scope "${scope}". Expected api, site, or both.`,
+  );
   process.exit(2);
 }
 
-const checks =
-  scope === "both"
-    ? ["api", "site"]
-    : [scope];
+const checks = scope === "both" ? ["api", "site"] : [scope];
 const failures = [];
 const apiUrl = process.env.TOOLSHOP_API_URL ?? targets[target].api;
 const siteUrl = process.env.TOOLSHOP_SITE_URL ?? targets[target].site;
