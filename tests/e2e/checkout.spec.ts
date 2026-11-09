@@ -13,6 +13,19 @@ const customer = {
   password: "welcome01",
 };
 
+function invoiceNumberFrom(body: unknown): string {
+  if (
+    body === null ||
+    typeof body !== "object" ||
+    !("invoice_number" in body) ||
+    typeof body.invoice_number !== "string" ||
+    body.invoice_number.length === 0
+  ) {
+    throw new Error("Invoice creation response is missing a non-empty invoice_number.");
+  }
+  return body.invoice_number;
+}
+
 async function openPaymentStep(page: Page) {
   const login = new LoginPage(page);
   await login.open(config.siteUrl);
@@ -55,20 +68,20 @@ test.describe("Authenticated checkout journey @e2e @smoke", () => {
     test(`${caseId} completes checkout using ${method}`, async ({ page }) => {
       const checkout = await openPaymentStep(page);
       await checkout.fillPaymentDetails(payment);
+      await checkout.checkPayment();
+      await expect(checkout.paymentSuccessMessage()).toBeVisible();
 
       const invoiceResponse = page.waitForResponse(
         (response) =>
           response.request().method() === "POST" &&
           new URL(response.url()).pathname.endsWith("/invoices"),
       );
-      await checkout.finish();
+      await checkout.confirmOrder();
 
       const response = await invoiceResponse;
-      expect(response.status()).toBeLessThan(300);
-      expect(await response.json()).toMatchObject({
-        invoice_number: expect.any(String),
-      });
-      await expect(checkout.paymentSuccessMessage()).toBeVisible();
+      expect(response.status()).toBe(200);
+      const invoiceNumber = invoiceNumberFrom(await response.json());
+      await expect(checkout.orderConfirmation()).toContainText(invoiceNumber);
     });
   }
 });
@@ -90,9 +103,9 @@ test.describe("Customer registration journey @e2e", () => {
 
     const response = await registration.register(user);
     expect(response.status()).toBe(201);
+    await expect(page).toHaveURL(/\/auth\/login$/);
 
     const login = new LoginPage(page);
-    await login.open(config.siteUrl);
     await login.signIn(user.email, user.password);
     await expect(page.locator('[data-test="nav-menu"]')).toBeVisible();
   });

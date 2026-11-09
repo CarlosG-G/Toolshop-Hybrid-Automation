@@ -77,20 +77,38 @@ explicitly.
 
 ## Test suites
 
-| Suite                          | Owner               | Default behavior                                |
-| ------------------------------ | ------------------- | ----------------------------------------------- |
-| `tests/unit`, `tests/mocked`   | Playwright          | Hermetic; runs in CI                            |
-| `tests/hermetic`               | Playwright + Vibium | Hermetic; informational in CI                   |
-| `tests/api`, `tests/e2e`       | Playwright          | Live; runs only after a successful health check |
-| `tests/vibium`, `tests/hybrid` | Vibium + Playwright | Live; informational in CI                       |
+| Suite                          | Owner               | Default behavior                                                                            |
+| ------------------------------ | ------------------- | ------------------------------------------------------------------------------------------- |
+| `tests/unit`, `tests/mocked`   | Playwright          | Hermetic; runs in CI                                                                        |
+| `tests/hermetic`               | Playwright + Vibium | Hermetic; informational in CI                                                               |
+| `tests/api`, `tests/contract`  | Playwright          | Blocking regression on the disposable SUT; public checks are informational                  |
+| `tests/e2e`                    | Playwright          | Registration and checkout on the disposable SUT; public catalog comparison is informational |
+| `tests/vibium`, `tests/hybrid` | Vibium + Playwright | Live; informational in CI                                                                   |
 
 `tests/mocked` also runs axe-core against the deterministic fixture. Playwright
 traces, screenshots, and HTML reports are retained as CI artifacts.
 
+The [checkout E2E matrix](tests/e2e/checkout.spec.ts) covers bank transfer, cash on
+delivery, credit card, buy-now-pay-later, and gift card (`TC-E2E-010` to `TC-E2E-014`).
+Each case starts with a fresh browser/cart, checks payment, confirms the order,
+and verifies that the UI displays the invoice number returned by the API.
+Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are modified.
+
+With Docker Compose available, run the same suite locally:
+
+```bash
+npm run sut:up
+npm run test:local -- tests/e2e
+npm run sut:down
+```
+
+Docker is not required on your workstation when running the workflow in GitHub Actions.
+
 ## Reporting and GitHub Actions
 
-- `ci.yml` runs typecheck, hermetic tests, a health-gated read-only live suite,
-  and informational Vibium/hybrid smokes on Windows.
+- `ci.yml` runs typecheck, hermetic tests, API/contract and checkout E2E regression
+  against a seeded Docker SUT, health-gated public checks, and informational
+  Vibium/hybrid smokes on Windows.
 - `nightly.yml` compares the stable and intentionally buggy Toolshop targets.
 - The unified JSON/Markdown report appears in the Actions Summary and artifacts.
 - When Pages is enabled for the repository, a dashboard can be published from
