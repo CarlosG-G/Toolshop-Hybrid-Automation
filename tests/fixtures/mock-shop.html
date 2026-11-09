@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hermetic Toolshop fixture</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, sans-serif;
+        color: #17212b;
+        background: #f2f5f8;
+      }
+      body { margin: 0; }
+      main {
+        max-width: 860px;
+        margin: 48px auto;
+        padding: 32px;
+        border: 1px solid #cbd5df;
+        border-radius: 12px;
+        background: #fff;
+      }
+      h1 { margin: 0 0 24px; font-size: 28px; }
+      label { display: block; margin-bottom: 8px; font-weight: 700; }
+      input { min-height: 40px; width: min(100%, 420px); padding: 0 10px; }
+      button {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 4px;
+        background: #005ea8;
+        color: #fff;
+        font: inherit;
+        cursor: pointer;
+      }
+      #search-button { margin-left: 8px; }
+      #products { display: grid; gap: 12px; margin: 16px 0; padding: 0; list-style: none; }
+      #products li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border: 1px solid #cbd5df;
+        border-radius: 6px;
+      }
+      #cart { background: #33475b; }
+      @media (max-width: 640px) {
+        main { margin: 16px; padding: 20px; }
+        #products li { align-items: flex-start; flex-direction: column; gap: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Toolshop test fixture</h1>
+      <label for="search">Search products</label>
+      <input id="search" type="search">
+      <button id="search-button" type="button">Search</button>
+      <p role="status" aria-live="polite"></p>
+      <ul id="products" aria-label="Products"></ul>
+      <button id="cart" type="button">Cart <span id="cart-count">0</span></button>
+    </main>
+    <script type="module" src="/mock-shop.js"></script>
+  </body>
+</html>

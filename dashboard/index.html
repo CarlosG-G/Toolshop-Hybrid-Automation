@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Toolshop automation report</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, sans-serif; }
+      body { margin: 0 auto; max-width: 1000px; padding: 2rem; color: #17212b; }
+      h1 { margin-bottom: .25rem; }
+      .muted { color: #526170; }
+      .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+      .card { border: 1px solid #cbd5df; border-radius: .5rem; padding: 1rem; }
+      .value { display: block; font-size: 1.8rem; font-weight: 700; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border-bottom: 1px solid #cbd5df; padding: .65rem; text-align: left; }
+      th { background: #f2f5f8; }
+      code { overflow-wrap: anywhere; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Toolshop automation report</h1>
+      <p class="muted" id="run-status">Loading latest run…</p>
+    </header>
+    <section class="cards" aria-label="Test totals">
+      <div class="card">Passed <span class="value" id="passed">—</span></div>
+      <div class="card">Detected <span class="value" id="detected">—</span></div>
+      <div class="card">Failed <span class="value" id="failed">—</span></div>
+      <div class="card">Flaky <span class="value" id="flaky">—</span></div>
+      <div class="card">Skipped <span class="value" id="skipped">—</span></div>
+    </section>
+    <section>
+      <h2>Test evidence</h2>
+      <div id="cases">No run report loaded.</div>
+    </section>
+    <script>
+      const status = document.querySelector("#run-status");
+      fetch("./data.json")
+        .then((response) => {
+          if (!response.ok) throw new Error(`Report unavailable (${response.status})`);
+          return response.json();
+        })
+        .then((report) => {
+          document.querySelector("#passed").textContent = report.totals.passed;
+          document.querySelector("#detected").textContent = report.totals.detected;
+          document.querySelector("#failed").textContent = report.totals.failed;
+          document.querySelector("#flaky").textContent = report.totals.flaky;
+          document.querySelector("#skipped").textContent = report.totals.skipped;
+          status.textContent = `Target: ${report.target} · Infrastructure: ${report.infrastructure} · ${report.generatedAt}`;
+          const container = document.querySelector("#cases");
+          if (report.cases.length === 0) {
+            container.textContent = "No individual test cases were reported.";
+            return;
+          }
+          const table = document.createElement("table");
+          table.innerHTML = "<thead><tr><th>Target</th><th>Test</th><th>Status</th><th>Duration</th></tr></thead>";
+          const body = document.createElement("tbody");
+          for (const testCase of report.cases) {
+            const row = document.createElement("tr");
+            for (const value of [testCase.target, testCase.title, testCase.status, `${testCase.durationMs} ms`]) {
+              const cell = document.createElement("td");
+              cell.textContent = value;
+              row.append(cell);
+            }
+            body.append(row);
+          }
+          table.append(body);
+          container.replaceChildren(table);
+        })
+        .catch((error) => {
+          status.textContent = error.message;
+        });
+    </script>
+  </body>
+</html>

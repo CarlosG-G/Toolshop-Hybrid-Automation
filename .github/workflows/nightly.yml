@@ -1,0 +1,96 @@
+name: Toolshop nightly comparison
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  visual:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run test:visual
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolshop-visual-baseline
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 30
+
+  stable:
+    uses: ./.github/workflows/ci.yml
+    with:
+      target: stable
+      publish_report: false
+      browser_matrix: true
+  with_bugs:
+    name: with-bugs
+    uses: ./.github/workflows/ci.yml
+    with:
+      target: with-bugs
+      publish_report: false
+      browser_matrix: true
+
+  compare:
+    if: ${{ always() && needs.stable.result != 'cancelled' && needs.with_bugs.result != 'cancelled' }}
+    needs: [stable, with_bugs]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Download stable report
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: toolshop-stable-reports
+          path: reports/stable
+      - name: Download with-bugs report
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: toolshop-with-bugs-reports
+          path: reports/with-bugs
+      - name: Build comparison report
+        if: always()
+        env:
+          TOOLSHOP_INFRA_STATUS: matrix; see missing report list for unavailable target runs
+          TOOLSHOP_REPORT_FILES: stable=reports/stable/hermetic.json;stable=reports/stable/live-api.json;stable=reports/stable/live-ui.json;stable=reports/stable/vibium.json;with-bugs=reports/with-bugs/hermetic.json;with-bugs=reports/with-bugs/live-api.json;with-bugs=reports/with-bugs/live-ui.json;with-bugs=reports/with-bugs/vibium.json
+        run: npm run report:build
+      - name: Build dashboard
+        if: always() && hashFiles('reports/unified-report.json') != ''
+        run: npm run dashboard:build
+      - name: Upload nightly comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolshop-nightly-comparison
+          path: |
+            reports/unified-report.json
+            reports/unified-report.md
+            site/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,10 @@
+node_modules/
+playwright-report/
+test-results/
+coverage/
+reports/*.json
+reports/*.md
+dashboard/data.json
+site/
+.env
+.DS_Store

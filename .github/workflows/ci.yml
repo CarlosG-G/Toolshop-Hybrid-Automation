@@ -1,0 +1,147 @@
+name: Toolshop automation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Toolshop environment to test
+        type: choice
+        options:
+          - stable
+          - with-bugs
+        default: stable
+      publish_report:
+        description: Publish the dashboard to GitHub Pages
+        type: boolean
+        default: true
+      browser_matrix:
+        description: Run Playwright UI suites in Chromium, Firefox, and WebKit
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      target:
+        description: Toolshop environment to test
+        type: string
+        required: false
+        default: stable
+      publish_report:
+        description: Publish the dashboard to GitHub Pages
+        type: boolean
+        required: false
+        default: false
+      browser_matrix:
+        description: Run Playwright UI suites in Chromium, Firefox, and WebKit
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: toolshop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    env:
+      TOOLSHOP_TARGET: ${{ inputs.target || 'stable' }}
+      TOOLSHOP_BROWSER_MATRIX: ${{ inputs.browser_matrix && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Install additional Playwright browsers
+        if: inputs.browser_matrix
+        run: npx playwright install --with-deps firefox webkit
+      - name: Install Vibium Chrome
+        run: npx vibium install
+      - name: Run hermetic gate
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/hermetic.json
+        run: npm run test:hermetic
+      - name: Check public API health
+        id: api_health
+        continue-on-error: true
+        run: npm run healthcheck:api
+      - name: Check target UI health
+        id: site_health
+        continue-on-error: true
+        run: npm run healthcheck:site
+      - name: Run live API regression
+        if: steps.api_health.outcome == 'success'
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/live-api.json
+        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/api
+      - name: Run live UI regression
+        if: steps.site_health.outcome == 'success'
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/live-ui.json
+        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/e2e
+      - name: Run Vibium and hybrid smoke (informational)
+        if: steps.site_health.outcome == 'success'
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/vibium.json
+        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/vibium tests/hybrid
+      - name: Record unavailable external target
+        if: steps.api_health.outcome != 'success' || steps.site_health.outcome != 'success'
+        run: |
+          echo "Some live suites were skipped because their API or UI health check failed. Hermetic gate still ran." >> "$GITHUB_STEP_SUMMARY"
+      - name: Build unified report
+        if: always()
+        env:
+          TOOLSHOP_INFRA_STATUS: api=${{ steps.api_health.outcome }}; site=${{ steps.site_health.outcome }}
+          TOOLSHOP_REPORT_FILES: reports/hermetic.json;reports/live-api.json;reports/live-ui.json;reports/vibium.json
+        run: npm run report:build
+      - name: Build dashboard
+        if: always() && hashFiles('reports/unified-report.json') != ''
+        run: npm run dashboard:build
+      - name: Upload reports and Playwright evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-reports
+          path: |
+            reports/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Configure GitHub Pages
+        if: ${{ always() && (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != '' }}
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        if: ${{ always() && (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != '' }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    if: ${{ always() && needs.test.result != 'cancelled' && (github.event_name == 'push' || inputs.publish_report) }}
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy report dashboard
+        id: deployment
+        uses: actions/deploy-pages@v4

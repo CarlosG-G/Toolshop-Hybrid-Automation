@@ -1,0 +1,42 @@
+{
+  "name": "toolshop-hybrid-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hybrid Playwright and Vibium automation for the Practice Software Testing Toolshop",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "test:hermetic": "playwright test tests/unit tests/mocked",
+    "test:api": "playwright test tests/api",
+    "test:e2e": "playwright test tests/e2e",
+    "test:vibium": "playwright test tests/vibium",
+    "test:hybrid": "playwright test tests/hybrid",
+    "test:visual": "playwright test tests/visual",
+    "test:cross-browser": "node scripts/run-browser-matrix.mjs",
+    "test:stable": "node scripts/run-target.mjs stable",
+    "test:with-bugs": "node scripts/run-target.mjs with-bugs",
+    "healthcheck": "node scripts/check-target.mjs both",
+    "healthcheck:api": "node scripts/check-target.mjs api",
+    "healthcheck:site": "node scripts/check-target.mjs site",
+    "report:build": "tsx scripts/build-report.ts",
+    "dashboard:build": "tsx scripts/build-dashboard.ts"
+  },
+  "dependencies": {
+    "vibium": "26.8.21"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  },
+  "allowScripts": {
+    "vibium@26.8.21": true,
+    "esbuild@0.28.2": true
+  }
+}
