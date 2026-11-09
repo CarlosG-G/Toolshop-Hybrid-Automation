@@ -8,6 +8,7 @@ and turns red as soon as the behaviour changes (fixed or regressed differently).
 | ID      | Title                                              | Severity | Priority | Detected by | Status |
 | ------- | -------------------------------------------------- | -------- | -------- | ----------- | ------ |
 | DEF-001 | Registration accepts customers older than 75 years | Major    | Medium   | TC-API-025  | Open   |
+| DEF-002 | Payment check accepts undocumented payment methods | Minor    | Low      | TC-API-042  | Open   |
 
 ## DEF-001 — Registration accepts customers older than 75 years
 
@@ -20,3 +21,14 @@ and turns red as soon as the behaviour changes (fixed or regressed differently).
   `$dt->subYears(18)` and then `$dt->subYears(75)` on the same mutable `Carbon` instance,
   so the upper bound becomes 93 years instead of 75.
 - **Technique:** boundary value analysis (3-value BVA around 18 and 75 years).
+
+## DEF-002 — Payment check accepts undocumented payment methods
+
+- **Environment:** all targets, `POST /payment/check`.
+- **Requirement:** OpenAPI `PaymentRequest.payment_method` is an enum of five methods.
+- **Steps:** send `{ "payment_method": "crypto", "payment_details": {} }`.
+- **Expected:** HTTP 422 (value outside the documented equivalence partition).
+- **Actual:** HTTP 200 `Payment was successful`.
+- **Root cause:** `PaymentController::check` only runs validation inside `if` branches for the
+  known methods; any other value falls through to the success response.
+- **Technique:** equivalence partitioning (invalid partition of `payment_method`).

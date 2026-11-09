@@ -35,6 +35,11 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
     await use(new ToolshopApi(request, config.apiUrl));
   },
   customerApi: async ({ request }, use) => {
+    // Public environments are shared and their seeded passwords get changed by other users.
+    test.skip(
+      !config.allowsWrites,
+      "Seeded customer credentials are only reliable locally.",
+    );
     const api = new ToolshopApi(request, config.apiUrl);
     await api.login(customer);
     await use(api);

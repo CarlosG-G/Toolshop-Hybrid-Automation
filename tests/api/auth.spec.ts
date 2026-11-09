@@ -5,6 +5,7 @@ test.describe("Authentication API @api", () => {
   test("TC-API-010 logs in a seeded customer and returns a bearer token", async ({
     api,
   }) => {
+    requiresWritableSut();
     const result = await api.tryLogin(customer);
 
     expect(result.status).toBe(200);

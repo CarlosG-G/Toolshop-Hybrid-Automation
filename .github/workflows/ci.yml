@@ -162,7 +162,6 @@ jobs:
       - name: Run API and contract regression on self-hosted SUT
         id: sut_api
         if: steps.sut.outcome == 'success'
-        continue-on-error: true
         env:
           PLAYWRIGHT_JSON_REPORT: reports/sut-api.json
         run: node scripts/run-target.mjs local tests/api tests/contract

@@ -47,7 +47,21 @@ test.describe("Payment API negative partitions @api", () => {
     expect(result.status).toBe(422);
   });
 
+  test("TC-API-043 rejects an expired credit card", async ({ api }) => {
+    const result = await api.tryCheckPayment({
+      payment_method: "credit-card",
+      payment_details: {
+        ...validPayments["credit-card"]!.payment_details,
+        expiration_date: "01/2020",
+      },
+    });
+
+    expect(result.status).toBe(422);
+  });
+
   test("TC-API-042 rejects an unknown payment method", async ({ api }) => {
+    // DEF-002: PaymentController::check only validates the five known methods.
+    test.fail(true, "DEF-002 undocumented payment methods are accepted");
     const result = await api.tryCheckPayment({
       payment_method: "crypto" as never,
       payment_details: {},
