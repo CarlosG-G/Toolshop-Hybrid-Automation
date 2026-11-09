@@ -11,10 +11,12 @@ store, so automated runs must not create persistent customer or order data.
 ## Decision
 - Playwright owns the deterministic regression suite, API setup/contract checks,
   network interception, accessibility audits, browser projects, traces, and CI gate.
-- Vibium's JavaScript client owns a small semantic smoke using role/text/label
-  locators over WebDriver BiDi.
+- Vibium's JavaScript client owns small live and hermetic semantic smokes using
+  role/text/label locators over WebDriver BiDi; both are informational in CI.
 - The hybrid example passes the product detail URL discovered by Playwright to a
   separate Vibium browser session, which checks the product heading semantically.
+- A second hybrid smoke hands the local fixture URL from Playwright to Vibium and
+  checks the cart without relying on the public target.
 - Vibium MCP may expose browser controls to a separately configured AI client;
   CI does not invoke an LLM. The current CLI's `check` command operates on
   checkboxes, not natural-language assertions, and does not provide a `run`

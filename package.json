@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "test:hermetic": "playwright test tests/unit tests/mocked",
+    "test:hybrid:hermetic": "playwright test tests/hermetic",
     "test:api": "playwright test tests/api",
     "test:e2e": "playwright test tests/e2e",
     "test:vibium": "playwright test tests/vibium",

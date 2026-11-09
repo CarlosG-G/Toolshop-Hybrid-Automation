@@ -74,6 +74,11 @@ jobs:
         env:
           PLAYWRIGHT_JSON_REPORT: reports/hermetic.json
         run: npm run test:hermetic
+      - name: Run hermetic hybrid smoke (informational)
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/hermetic-hybrid.json
+        run: npm run test:hybrid:hermetic
       - name: Check public API health
         id: api_health
         continue-on-error: true
@@ -106,7 +111,9 @@ jobs:
         if: always()
         env:
           TOOLSHOP_INFRA_STATUS: api=${{ steps.api_health.outcome }}; site=${{ steps.site_health.outcome }}
-          TOOLSHOP_REPORT_FILES: reports/hermetic.json;reports/live-api.json;reports/live-ui.json;reports/vibium.json
+          TOOLSHOP_REPORT_FILES: >-
+            reports/hermetic.json;reports/hermetic-hybrid.json;
+            reports/live-api.json;reports/live-ui.json;reports/vibium.json
         run: npm run report:build
       - name: Build dashboard
         if: always() && hashFiles('reports/unified-report.json') != ''

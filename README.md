@@ -35,10 +35,12 @@ npx playwright install chromium
 npx vibium install
 npm run typecheck
 npm run test:hermetic
+npm run test:hybrid:hermetic
 ```
 
 Hermetic tests run against a local fixture and deterministic mocked API. They
-are the always-on gate and do not depend on Toolshop being available.
+do not depend on Toolshop being available. Playwright is the always-on gate;
+the separate hybrid smoke also exercises Vibium and is informational in CI.
 
 ## Live tests
 
@@ -56,6 +58,11 @@ target does not suppress checks against the other. The UI health check uses
 Playwright Chromium, matching the live browser tests. The cross-browser command
 checks the UI before it starts.
 
+Some hosted runners receive HTTP 403 from the public site. The report marks the
+site unavailable and skips live UI and Vibium checks in that case; the local
+hybrid smoke still runs. Run live tests locally where access is allowed or use
+an authorized compatible deployment.
+
 The `stable` and `with-bugs` targets can also be selected with
 `TOOLSHOP_TARGET`. Live tests use the public catalog only; do not add write
 operations without an explicit disposable-data and cleanup strategy.
@@ -69,6 +76,7 @@ explicitly.
 | Suite | Owner | Default behavior |
 | --- | --- | --- |
 | `tests/unit`, `tests/mocked` | Playwright | Hermetic; runs in CI |
+| `tests/hermetic` | Playwright + Vibium | Hermetic; informational in CI |
 | `tests/api`, `tests/e2e` | Playwright | Live; runs only after a successful health check |
 | `tests/vibium`, `tests/hybrid` | Vibium + Playwright | Live; informational in CI |
 

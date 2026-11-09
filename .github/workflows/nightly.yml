@@ -78,7 +78,17 @@ jobs:
         if: always()
         env:
           TOOLSHOP_INFRA_STATUS: matrix; see missing report list for unavailable target runs
-          TOOLSHOP_REPORT_FILES: stable=reports/stable/hermetic.json;stable=reports/stable/live-api.json;stable=reports/stable/live-ui.json;stable=reports/stable/vibium.json;with-bugs=reports/with-bugs/hermetic.json;with-bugs=reports/with-bugs/live-api.json;with-bugs=reports/with-bugs/live-ui.json;with-bugs=reports/with-bugs/vibium.json
+          TOOLSHOP_REPORT_FILES: >-
+            stable=reports/stable/reports/hermetic.json;
+            stable=reports/stable/reports/hermetic-hybrid.json;
+            stable=reports/stable/reports/live-api.json;
+            stable=reports/stable/reports/live-ui.json;
+            stable=reports/stable/reports/vibium.json;
+            with-bugs=reports/with-bugs/reports/hermetic.json;
+            with-bugs=reports/with-bugs/reports/hermetic-hybrid.json;
+            with-bugs=reports/with-bugs/reports/live-api.json;
+            with-bugs=reports/with-bugs/reports/live-ui.json;
+            with-bugs=reports/with-bugs/reports/vibium.json
         run: npm run report:build
       - name: Build dashboard
         if: always() && hashFiles('reports/unified-report.json') != ''

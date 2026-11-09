@@ -17,6 +17,18 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.url === "/api/products") {
+    response.writeHead(200, { "content-type": "application/json" }).end(
+      JSON.stringify({
+        current_page: 1,
+        data: [
+          { id: "pliers-1", name: "Combination Pliers", price: 14.15, in_stock: true },
+        ],
+      }),
+    );
+    return;
+  }
+
   const file = files.get(request.url ?? "");
   if (!file) {
     response.writeHead(404).end("Not found");
