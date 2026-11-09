@@ -19,6 +19,9 @@ export class CheckoutPage {
       state: "visible",
       timeout: CHECKOUT_TIMEOUT_MS,
     });
+    await this.page.getByLabel("Country").selectOption({ label: "Austria" });
+    await this.page.getByPlaceholder("Your Postcode *").fill("1010");
+    await this.page.getByPlaceholder("e.g. 42 *").fill("1");
     await proceedToPayment.click();
     await this.paymentMethod().waitFor({
       state: "visible",
