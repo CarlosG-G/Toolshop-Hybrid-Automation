@@ -11,7 +11,7 @@ const targets: Record<ToolshopTarget, { siteUrl: string; apiUrl: string }> = {
   },
   local: {
     siteUrl: "http://localhost:4200",
-    apiUrl: "http://localhost:8091",
+    apiUrl: "http://127.0.0.1:8091",
   },
 };
 
