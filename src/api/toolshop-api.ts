@@ -26,7 +26,7 @@ export interface Address {
   city: string;
   state: string;
   country: string;
-  postal_code: string;
+  postal_code?: string;
 }
 
 export interface RegisterUser extends Credentials {
@@ -176,7 +176,9 @@ export class ToolshopApi {
       billing_city: address.city,
       billing_state: address.state,
       billing_country: address.country,
-      billing_postal_code: address.postal_code,
+      ...(address.postal_code === undefined
+        ? {}
+        : { billing_postal_code: address.postal_code }),
       ...payment,
     });
   }

@@ -26,6 +26,6 @@ export const validPayments: Record<string, Payment> = {
   },
   "gift-card": {
     payment_method: "gift-card",
-    payment_details: { gift_card_number: "GIFT1234ABCD", validation_code: "VC12" },
+    payment_details: { gift_card_number: "GIFT1234ABCD5678", validation_code: "VC12" },
   },
 };

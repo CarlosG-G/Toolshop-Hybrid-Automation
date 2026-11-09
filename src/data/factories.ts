@@ -67,10 +67,13 @@ export function buildRegistration(
   };
 }
 
+/**
+ * Billing address without postal code: the SUT cross-checks country + postcode against an
+ * external lookup service, which would make checkout depend on a third party.
+ */
 export const billingAddress = {
   street: "Calle Sierpes 1",
   city: "Sevilla",
   state: "Andalucia",
   country: "ES",
-  postal_code: "41004",
 } as const;

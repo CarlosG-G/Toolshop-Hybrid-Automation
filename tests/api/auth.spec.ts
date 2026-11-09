@@ -66,7 +66,7 @@ test.describe("Registration API @api @writes", () => {
     },
     {
       id: "TC-API-023",
-      label: "exactly 18 years (min)",
+      label: "18 years and 1 day (min)",
       dob: dobForAge(18, -1),
       valid: true,
     },
@@ -91,6 +91,11 @@ test.describe("Registration API @api @writes", () => {
     test(`${boundary.id} date of birth BVA rejects ${boundary.label}`, async ({
       api,
     }) => {
+      // DEF-001: the API derives the upper bound from a mutated Carbon instance (now - 18 - 75 years).
+      test.fail(
+        boundary.id === "TC-API-025",
+        "DEF-001 upper age limit is 93 instead of 75",
+      );
       const result = await api.tryRegister(buildRegistration({ dob: boundary.dob }));
 
       expect(result.status).toBeGreaterThanOrEqual(400);

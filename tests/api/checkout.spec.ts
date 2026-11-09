@@ -35,6 +35,29 @@ test.describe("Payment API @api", () => {
   }
 });
 
+test.describe("Payment API negative partitions @api", () => {
+  test("TC-API-041 rejects a gift card number shorter than 16 characters", async ({
+    api,
+  }) => {
+    const result = await api.tryCheckPayment({
+      payment_method: "gift-card",
+      payment_details: { gift_card_number: "GIFT1234ABCD567", validation_code: "VC12" },
+    });
+
+    expect(result.status).toBe(422);
+  });
+
+  test("TC-API-042 rejects an unknown payment method", async ({ api }) => {
+    const result = await api.tryCheckPayment({
+      payment_method: "crypto" as never,
+      payment_details: {},
+    });
+
+    expect(result.status).toBeGreaterThanOrEqual(400);
+    expect(result.status).toBeLessThan(500);
+  });
+});
+
 test.describe("Invoice and favorites API @api @writes", () => {
   test.beforeEach(requiresWritableSut);
 
