@@ -24,8 +24,14 @@ export async function findSemanticHeadings(page: Page, text: string): Promise<El
 export async function assertVibiumVisible(
   element: Element,
   description: string,
+  timeoutMs = 15_000,
 ): Promise<void> {
-  if (!(await element.isVisible())) {
-    throw new Error(`Vibium oracle: expected "${description}" to be visible.`);
+  try {
+    await element.waitUntil("visible", { timeout: timeoutMs });
+  } catch (error) {
+    throw new Error(
+      `Vibium oracle: expected "${description}" to be visible within ${timeoutMs} ms.`,
+      { cause: error },
+    );
   }
 }

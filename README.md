@@ -137,6 +137,7 @@ Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are mo
 
 | Type                          | Where                                                        | ISTQB technique / standard                         |
 | ----------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| Unit and mocked integration   | `tests/unit`, `tests/mocked`                                 | Component tests, controlled doubles                |
 | Positive functional (API, UI) | `tests/api`, `tests/e2e`                                     | Use-case testing, data-driven equivalence classes  |
 | Negative and validation       | `tests/api/robustness.spec.ts`, `tests/e2e/negative.spec.ts` | Equivalence partitioning, BVA, error guessing      |
 | Payment rule partitions       | `src/data/payments.ts` (shared by API and UI)                | Invalid partitions per field, client/server parity |
@@ -148,6 +149,7 @@ Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are mo
 | Mobile / responsive           | `tests/nonfunctional/responsive.spec.ts`                     | Viewport overflow and navigation usability         |
 | Resilience                    | `tests/nonfunctional/resilience.spec.ts`                     | Fault injection (latency, 5xx, connection refused) |
 | Visual                        | `tests/visual`                                               | Platform-specific pixel comparison                 |
+| Hybrid browser verification   | `tests/hermetic`, `tests/vibium`, `tests/hybrid`             | Independent Playwright and Vibium observations     |
 | Load and DAST                 | `tests/load`, `.github/workflows/nightly-quality.yml`        | k6 thresholds and ZAP baseline scan                |
 
 Defects found by these suites are tracked in the [defect log](docs/test-management/defect-log.md);
