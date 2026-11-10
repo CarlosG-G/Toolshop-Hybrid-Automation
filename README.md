@@ -3,6 +3,8 @@
 [![CI](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml)
 [![Nightly quality](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml)
 [![CodeQL](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml)
+[![Nightly comparison](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/CarlosG-G/Toolshop-Hybrid-Automation/badge)](https://scorecard.dev/viewer/?uri=github.com/CarlosG-G/Toolshop-Hybrid-Automation)
 
 **A risk-based test automation portfolio:** Playwright, Vibium and BDD against
 [Practice Software Testing Toolshop](https://practicesoftwaretesting.com), with
@@ -219,12 +221,19 @@ Manual runs do not publish by default. To replace the public dashboard, select
 `update_visual_baselines` produces a reviewable baseline artifact for `all` or
 `visual` runs; it does not commit snapshots automatically.
 
-Two additional manual workflows are available under **Actions > Run workflow**:
+Other workflows run automatically; the nightly ones can also be started from
+**Actions > Run workflow**:
 
-| Workflow                       | Purpose                                                                               |
-| ------------------------------ | ------------------------------------------------------------------------------------- |
-| Toolshop nightly comparison    | Full stable/with-bugs comparison, browser matrix and published comparison dashboard   |
-| Nightly load and security scan | k6 smoke/load, passive ZAP scan and five-run Lighthouse budgets on the disposable SUT |
+| Workflow                       | Trigger                      | Purpose                                                                               |
+| ------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------- |
+| Toolshop nightly comparison    | Nightly, manual              | Full stable/with-bugs comparison, browser matrix and published comparison dashboard   |
+| Nightly load and security scan | Nightly, manual              | k6 smoke/load, passive ZAP scan and five-run Lighthouse budgets on the disposable SUT |
+| CodeQL                         | Push, PR, weekly, manual     | `security-extended` analysis of TypeScript and of the workflows themselves            |
+| Pull request hygiene           | PR                           | Conventional Commits PR title and commitlint over every PR commit                     |
+| Dependency review              | PR touching dependencies     | Blocks newly introduced dependencies with high or critical advisories                 |
+| Workflow lint                  | Workflow changes, manual     | actionlint and shellcheck over `.github/workflows`                                    |
+| OpenSSF Scorecard              | Push to main, weekly, manual | Supply-chain posture published to code scanning and the Scorecard badge               |
+| Release                        | `v*.*.*` tag                 | Version check, hermetic gate, changelog notes and SBOM attached to a GitHub release   |
 
 ### Quality gates
 
