@@ -30,7 +30,7 @@ the API rejects customers on their 18th birthday.
 | RM-04 | Run the live local SUT suite (`npm run test:local`) in a CI job using Docker Compose         | The public sites return 403 on GitHub-hosted runners, so live checks are informational only | A workflow starts the SUT, runs the `api`, `e2e` and `bdd` projects with writes enabled, uploads the report and tears down | M      | done    |
 | RM-05 | Raise the mutation score from 70.14% to at least 75% and the break threshold from 65% to 70% | Surviving mutants show assertions that do not detect real changes                           | Weekly mutation run reports at least 75%; `stryker.config.json` break threshold updated                                    | M      | planned |
 | RM-06 | Extend visual baselines to checkout, registration and product detail on the local SUT        | Only two visual baselines exist today                                                       | Three new `toHaveScreenshot` checks with masked dynamic content and stable reruns                                          | M      | planned |
-| RM-07 | Extend the axe-core scan to product detail, cart and checkout                                | TC-A11Y-001 to 004 cover home, login, registration and contact only; checkout has risk 9    | New TC-A11Y IDs for the three pages; any critical finding logged as a defect and frozen with `markKnownDefect`             | S      | planned |
+| RM-07 | Extend the axe-core scan to product detail, cart and checkout                                | TC-A11Y-001 to 004 cover home, login, registration and contact only; checkout has risk 9    | New TC-A11Y IDs for the three pages; any critical finding logged as a defect and frozen with `markKnownDefect`             | S      | done    |
 
 RM-04 review: already in place before this roadmap. The `SUT / <suite>` jobs in
 [`ci.yml`](../.github/workflows/ci.yml) start the SUT with Docker Compose
@@ -38,6 +38,12 @@ RM-04 review: already in place before this roadmap. The `SUT / <suite>` jobs in
 `nonfunctional` and `vibium` suites against it with writes enabled. They upload
 reports, and the SUT is discarded with the runner. These jobs are the blocking
 gate on every pull request.
+
+RM-07 result: TC-A11Y-005 (product detail), TC-A11Y-006 (cart) and TC-A11Y-007
+(checkout payment step) were added to
+[`accessibility.spec.ts`](../tests/nonfunctional/accessibility.spec.ts). The
+first run against the local SUT found no critical WCAG 2.1 AA violations on
+these pages, so no new defect was logged.
 
 ## Phase 3: long-term
 

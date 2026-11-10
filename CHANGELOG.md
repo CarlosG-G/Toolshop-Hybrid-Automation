@@ -11,6 +11,8 @@
   registration API rejects customers on their 18th birthday; TC-API-068 freezes the signature.
 - README "Defects found by the suite" table linking each DEF ID to its issue, test and frozen
   signature (roadmap item RM-03).
+- TC-A11Y-005 to TC-A11Y-007 extend the axe-core scan to product detail, cart and the
+  checkout payment step (roadmap item RM-07).
 
 ## 1.1.0
 
