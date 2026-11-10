@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { browser } from "vibium";
 import { CatalogPage } from "../../src/pages/catalog.page.js";
 import { config } from "../../src/config/env.js";
+import { startDesktopChrome } from "../../src/vibium/session.js";
 import { assertVibiumVisible, findSemanticHeadings } from "../../src/vibium/semantic.js";
 
 test("WB-01: Playwright and Vibium check the same catalog heading", async ({
@@ -25,7 +25,7 @@ test("WB-01: Playwright and Vibium check the same catalog heading", async ({
   if (config.target === "with-bugs") {
     await expect(catalogHeading).toHaveCount(0);
 
-    const vibiumSession = await browser.start({ engine: "chrome", headless: true });
+    const vibiumSession = await startDesktopChrome();
     try {
       const vibiumPage = await vibiumSession.page();
       await vibiumPage.go(config.siteUrl);
@@ -49,7 +49,7 @@ test("WB-01: Playwright and Vibium check the same catalog heading", async ({
   await productLink.click();
   const productUrl = playwrightPage.url();
 
-  const vibiumSession = await browser.start({ engine: "chrome", headless: true });
+  const vibiumSession = await startDesktopChrome();
   try {
     const vibiumPage = await vibiumSession.page();
     await vibiumPage.go(productUrl);

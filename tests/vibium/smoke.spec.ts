@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { browser } from "vibium";
 import { config } from "../../src/config/env.js";
+import { startDesktopChrome } from "../../src/vibium/session.js";
 import { findSemanticHeadings } from "../../src/vibium/semantic.js";
 
 test("WB-01: Vibium checks the accessible catalog heading", async () => {
   test.skip(process.env.TOOLSHOP_LIVE !== "1", "Live Vibium suite is opt-in.");
 
-  const session = await browser.start({ engine: "chrome", headless: true });
+  const session = await startDesktopChrome();
   try {
     const page = await session.page();
     await page.go(config.siteUrl);
