@@ -110,11 +110,21 @@ test.describe("Registration API @api @writes", () => {
     },
   ];
   for (const boundary of ageBoundaries.filter((candidate) => candidate.valid)) {
+    const knownDefect =
+      boundary.id === "TC-API-068"
+        ? "DEF-007 the exact 18th birthday is rejected"
+        : undefined;
     test(`${boundary.id} date of birth BVA accepts ${boundary.label}`, async ({
       api,
     }) => {
       const result = await api.tryRegister(buildRegistration({ dob: boundary.dob }));
 
+      // A bare 422 could come from any field, so the signature includes the dob error.
+      markKnownDefect<unknown>(
+        { status: result.status, body: result.body },
+        { status: 422, body: { dob: ["Customer must be 18 years old."] } },
+        knownDefect,
+      );
       expect(result.status).toBe(201);
     });
   }

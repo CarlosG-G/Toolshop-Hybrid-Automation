@@ -46,20 +46,21 @@ unexpected account creation.
    using fixed dates; consider leap years and the tester's time zone.
 
 The [defect log](../docs/test-management/defect-log.md) tracks the known
-registration findings as DEF-001, DEF-004 and DEF-006. Compare the observed
-failure with the recorded signature before reporting a new defect.
+registration findings as DEF-001, DEF-004, DEF-006 and DEF-007. Compare the
+observed failure with the recorded signature before reporting a new defect.
 
 ## Automated comparison
 
 On the same disposable SUT, run the existing registration API cases:
 
 ```bash
-npm run test:local -- tests/api/auth.spec.ts tests/api/robustness.spec.ts --grep "TC-API-02[0-5]|TC-API-062|TC-API-067"
+npm run test:local -- tests/api/auth.spec.ts tests/api/robustness.spec.ts --grep "TC-API-02[0-5]|TC-API-06[2789]"
 ```
 
-These are regression checks, not a substitute for exploration. The current age
-cases do not cover the exact 18th and 75th birthdays. Known defects are recorded
-as expected failures; that result does not mean they are fixed.
+These are regression checks, not a substitute for exploration. TC-API-068 and
+TC-API-069 cover the exact 18th and 75th birthdays; TC-API-068 detects DEF-007.
+Known defects are recorded as expected failures; that result does not mean
+they are fixed.
 
 ## Evidence and cleanup
 

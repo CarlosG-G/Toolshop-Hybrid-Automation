@@ -7,14 +7,15 @@ Known SUT defects use `test.fail()` only after checking the observed response or
 violation. A changed signature or unrelated earlier error fails normally and
 requires triage. DEF-003 is a separate, informational public-environment finding.
 
-| ID      | Issue                                                                    | Title                                                | Severity | Priority | Detected by | Status                 |
-| ------- | ------------------------------------------------------------------------ | ---------------------------------------------------- | -------- | -------- | ----------- | ---------------------- |
-| DEF-001 | [#10](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/10) | Registration accepts customers older than 75 years   | Major    | Medium   | TC-API-025  | Open                   |
-| DEF-002 | [#11](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/11) | Payment check accepts undocumented payment methods   | Minor    | Low      | TC-API-042  | Open                   |
-| DEF-003 | [#12](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/12) | Public stable API returns 500 for an unknown product | Minor    | Low      | TC-API-003  | Open (public env only) |
-| DEF-004 | [#13](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/13) | Registration API accepts a malformed email           | Major    | High     | TC-API-062  | Open                   |
-| DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name         | Major    | Medium   | TC-A11Y-002 | Open                   |
-| DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth      | Minor    | Medium   | TC-API-067  | Open                   |
+| ID      | Issue                                                                    | Title                                                 | Severity | Priority | Detected by | Status                 |
+| ------- | ------------------------------------------------------------------------ | ----------------------------------------------------- | -------- | -------- | ----------- | ---------------------- |
+| DEF-001 | [#10](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/10) | Registration accepts customers older than 75 years    | Major    | Medium   | TC-API-025  | Open                   |
+| DEF-002 | [#11](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/11) | Payment check accepts undocumented payment methods    | Minor    | Low      | TC-API-042  | Open                   |
+| DEF-003 | [#12](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/12) | Public stable API returns 500 for an unknown product  | Minor    | Low      | TC-API-003  | Open (public env only) |
+| DEF-004 | [#13](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/13) | Registration API accepts a malformed email            | Major    | High     | TC-API-062  | Open                   |
+| DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name          | Major    | Medium   | TC-A11Y-002 | Open                   |
+| DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth       | Minor    | Medium   | TC-API-067  | Open                   |
+| DEF-007 | [#19](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19) | Registration rejects customers on their 18th birthday | Minor    | Low      | TC-API-068  | Open                   |
 
 ## DEF-001 — Registration accepts customers older than 75 years
 
@@ -76,3 +77,21 @@ requires triage. DEF-003 is a separate, informational public-environment finding
 - **Expected:** HTTP 422 with a validation error for `dob`.
 - **Actual:** the empty-payload validation response lists `first_name`, `last_name`, `email` and `password` but never `dob`; the field is not validated server-side.
 - **Technique:** client/server validation parity, error guessing.
+
+## DEF-007 — Registration rejects customers on their 18th birthday
+
+- **Environment:** self-hosted SUT (`TOOLSHOP_TARGET=local`), `POST /users/register`.
+- **Requirement:** OpenAPI `UserRequest.dob` — "Must be a valid date between 18 and 75 years ago";
+  REQ-REG-01 accepts ages 18 to 75.
+- **Steps:** register a customer whose date of birth is exactly 18 years before the current UTC date.
+- **Expected:** HTTP 201; a customer who turns 18 today is eligible.
+- **Actual:** HTTP 422 with `{"dob":["Customer must be 18 years old."]}`. A date of birth one day
+  earlier (TC-API-023) is accepted.
+- **Root cause (static analysis of the provider source):** `StoreCustomer::rules()` validates `dob`
+  with Laravel's strict `before:` rule against the date 18 years ago, which excludes the 18th
+  birthday itself; `before_or_equal:` would include it. The upper bound uses the strict `after:`
+  rule, so a DEF-001 fix that keeps it would reject the exact 75th birthday; TC-API-069 guards
+  that boundary.
+- **Evidence:** [CI run 42847127751](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/runs/42847127751),
+  job `SUT / api`, Playwright trace of TC-API-068.
+- **Technique:** boundary value analysis (exact 18- and 75-year boundaries, roadmap item RM-01).
