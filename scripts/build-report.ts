@@ -82,11 +82,11 @@ const caseTable =
   report.cases.length === 0
     ? "No individual test cases were reported."
     : [
-        "| Target | Test | Status | Duration | Run |",
-        "| --- | --- | --- | ---: | --- |",
+        "| Target | Project | Test | Status | Duration | Run |",
+        "| --- | --- | --- | --- | ---: | --- |",
         ...report.cases.map(
           (testCase) =>
-            `| ${testCase.target} | ${testCase.title.replaceAll("|", "\\|")} | ${testCase.status} | ${testCase.durationMs} ms | ${testCase.source} |`,
+            `| ${testCase.target} | ${(testCase.project || "Not reported").replaceAll("|", "\\|")} | ${testCase.title.replaceAll("|", "\\|")} | ${testCase.status} | ${testCase.durationMs} ms | ${testCase.source} |`,
         ),
       ].join("\n");
 const missing =

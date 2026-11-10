@@ -32,7 +32,10 @@ const markdown = [
   "## Flaky tests requiring investigation",
   "",
   ...(summary.flakyCases.length
-    ? summary.flakyCases.map((testCase) => `- ${testCase.title}`)
+    ? summary.flakyCases.map(
+        (testCase) =>
+          `- ${testCase.target} / ${testCase.project || "project not reported"} / ${testCase.title}`,
+      )
     : ["None reported."]),
   "",
 ].join("\n");

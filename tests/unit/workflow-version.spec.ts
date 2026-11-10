@@ -20,3 +20,24 @@ test("CI browser image is digest-pinned and matches the locked Playwright versio
   ).not.toBeNull();
   expect(image?.[1]).toBe(version);
 });
+
+test("nightly comparison includes both SUT matrices and publishes the comparison", async () => {
+  const workflow = await readFile(
+    new URL("../../.github/workflows/nightly.yml", import.meta.url),
+    "utf8",
+  );
+  const suites = ["api", "ui-1", "ui-2", "nonfunctional", "bdd", "visual", "vibium"];
+  for (const [target, label] of [
+    ["stable", "local-from-stable"],
+    ["with-bugs", "local-from-with-bugs"],
+  ]) {
+    for (const suite of suites) {
+      expect(workflow).toContain(`${label}=reports/${target}/reports/sut-${suite}.json`);
+    }
+  }
+  const stable = workflow.match(/^  stable:\s*\r?\n([\s\S]*?)(?=^  with_bugs:)/m)?.[1];
+  expect(stable).toContain("publish_report: false");
+  expect(workflow).toContain("needs: [stable, with_bugs, visual]");
+  expect(workflow).toContain("visual=${{ needs.visual.result }}");
+  expect(workflow).toMatch(/^  deploy:\s+[\s\S]*?needs:\s*compare/m);
+});

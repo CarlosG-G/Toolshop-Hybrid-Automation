@@ -41,7 +41,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
     with:
       target: stable
-      publish_report: true
+      publish_report: false
       browser_matrix: true
   with_bugs:
     name: with-bugs
@@ -53,10 +53,14 @@ jobs:
 
   compare:
     if: ${{ always() && needs.stable.result != 'cancelled' && needs.with_bugs.result != 'cancelled' }}
-    needs: [stable, with_bugs]
+    needs: [stable, with_bugs, visual]
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pages: write
+      id-token: write
+    outputs:
+      pages_status: ${{ steps.pages_upload.outcome }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -76,29 +80,72 @@ jobs:
         with:
           name: toolshop-with-bugs-reports
           path: reports/with-bugs
+      - name: Restore dashboard history and nightly quality context
+        if: always()
+        run: |
+          mkdir -p reports
+          for candidate in reports/stable/reports reports/with-bugs/reports; do
+            if [ -f "$candidate/previous-history.json" ]; then
+              cp "$candidate/previous-history.json" reports/previous-history.json
+              break
+            fi
+          done
+          for candidate in reports/stable/reports reports/with-bugs/reports; do
+            if [ -f "$candidate/nightly-run.json" ]; then
+              cp "$candidate/nightly-run.json" reports/nightly-run.json
+              if [ -d "$candidate/nightly" ]; then
+                cp -R "$candidate/nightly" reports/nightly
+              else
+                echo "::notice::Nightly quality metadata exists, but its reports were not downloaded."
+              fi
+              break
+            fi
+          done
+          if [ ! -f reports/previous-history.json ]; then
+            echo "::notice::No previous dashboard history was available."
+          fi
+          if [ ! -f reports/nightly-run.json ]; then
+            echo "::notice::No nightly quality metadata was available."
+          fi
       - name: Build comparison report
         if: always()
         env:
-          TOOLSHOP_INFRA_STATUS: matrix; see missing report list for unavailable target runs
+          TOOLSHOP_INFRA_STATUS: stable=${{ needs.stable.result }}; with-bugs=${{ needs.with_bugs.result }}; visual=${{ needs.visual.result }}; see child reports for suite health
           TOOLSHOP_REPORT_FILES: >-
             stable=reports/stable/reports/hermetic.json;
             stable=reports/stable/reports/hermetic-hybrid.json;
             stable=reports/stable/reports/live-api.json;
             stable=reports/stable/reports/live-ui.json;
             stable=reports/stable/reports/vibium.json;
+            local-from-stable=reports/stable/reports/sut-api.json;
+            local-from-stable=reports/stable/reports/sut-ui-1.json;
+            local-from-stable=reports/stable/reports/sut-ui-2.json;
+            local-from-stable=reports/stable/reports/sut-nonfunctional.json;
+            local-from-stable=reports/stable/reports/sut-bdd.json;
+            local-from-stable=reports/stable/reports/sut-visual.json;
+            local-from-stable=reports/stable/reports/sut-vibium.json;
             with-bugs=reports/with-bugs/reports/hermetic.json;
             with-bugs=reports/with-bugs/reports/hermetic-hybrid.json;
             with-bugs=reports/with-bugs/reports/live-api.json;
             with-bugs=reports/with-bugs/reports/live-ui.json;
-            with-bugs=reports/with-bugs/reports/vibium.json
+            with-bugs=reports/with-bugs/reports/vibium.json;
+            local-from-with-bugs=reports/with-bugs/reports/sut-api.json;
+            local-from-with-bugs=reports/with-bugs/reports/sut-ui-1.json;
+            local-from-with-bugs=reports/with-bugs/reports/sut-ui-2.json;
+            local-from-with-bugs=reports/with-bugs/reports/sut-nonfunctional.json;
+            local-from-with-bugs=reports/with-bugs/reports/sut-bdd.json;
+            local-from-with-bugs=reports/with-bugs/reports/sut-visual.json;
+            local-from-with-bugs=reports/with-bugs/reports/sut-vibium.json
         run: |
           npm run traceability
           npm run report:build
           npm run report:exit
       - name: Build dashboard
-        if: always() && hashFiles('reports/unified-report.json') != ''
+        id: dashboard
+        if: success() && hashFiles('reports/unified-report.json') != ''
         run: npm run dashboard:build
       - name: Upload nightly comparison
+        id: comparison_upload
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -106,6 +153,38 @@ jobs:
           path: |
             reports/unified-report.json
             reports/unified-report.md
+            reports/exit-report.json
+            reports/exit-report.md
+            reports/traceability.json
             site/
           if-no-files-found: warn
           retention-days: 30
+      - name: Configure GitHub Pages
+        id: pages_config
+        if: always() && steps.dashboard.outcome == 'success' && steps.comparison_upload.outcome == 'success'
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - name: Upload Pages artifact
+        id: pages_upload
+        if: always() && steps.pages_config.outcome == 'success'
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: site
+
+  deploy:
+    name: Publish nightly comparison
+    if: always() && needs.compare.outputs.pages_status == 'success'
+    needs: compare
+    runs-on: ubuntu-latest
+    concurrency:
+      group: toolshop-pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy comparison dashboard
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

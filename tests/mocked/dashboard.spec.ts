@@ -41,6 +41,34 @@ async function openDashboard(
   await page.goto("http://127.0.0.1:4173/report-dashboard");
 }
 
+test("shows the browser project for a flaky SUT case", async ({ page }) => {
+  await openDashboard(page, [], {
+    cases: [
+      {
+        target: "local-from-with-bugs",
+        type: "e2e",
+        project: "webkit",
+        title: "TC-E2E-035",
+        status: "flaky",
+        durationMs: 42,
+      },
+      {
+        target: "local-from-stable",
+        type: "e2e",
+        title: "Legacy report",
+        status: "passed",
+        durationMs: 5,
+      },
+    ],
+  });
+
+  const evidence = page.locator("#cases");
+  await expect(evidence.getByRole("row", { name: /TC-E2E-035/ })).toContainText("webkit");
+  await expect(evidence.getByRole("row", { name: /Legacy report/ })).toContainText(
+    "Not reported",
+  );
+});
+
 test("provides a self-contained dashboard icon", async ({ page }) => {
   await openDashboard(page, []);
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute(

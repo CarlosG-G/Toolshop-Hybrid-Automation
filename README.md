@@ -131,8 +131,10 @@ The [checkout E2E matrix](tests/e2e/checkout.spec.ts) covers bank transfer, cash
 delivery, credit card, buy-now-pay-later, and gift card (`TC-E2E-010` to `TC-E2E-014`).
 Each case starts with a fresh browser/cart, checks payment, confirms the order,
 and verifies that the UI displays the invoice number returned by the API.
-Checkout waits for the asynchronous address lookup to populate the required
-billing fields before advancing; a missing result fails explicitly.
+Checkout observes postcode lookups after the UI's 300 ms debounce, waits for all
+matching requests and verifies that the billing fields reflect the final response
+before advancing. Timeouts, HTTP and network errors, and incomplete results fail
+explicitly. This synchronization depends on the SUT's lookup behavior.
 Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are modified.
 
 ### Test types and design techniques
@@ -179,6 +181,12 @@ recorded defects. BDD features reuse page objects and the checkout helper.
 
 Each run can produce a JSON/Markdown exit report and a dashboard with results
 by test type, open defects, flaky cases, missing reports and recent runs:
+
+The nightly dashboard compares both public targets and both independent local
+SUT matrices. `local-from-stable` and `local-from-with-bugs` identify the
+workflow that ran each disposable SUT, not different public deployments.
+Totals count executions, including browser projects, rather than unique
+designed cases. Project names identify the browser when Playwright reports it.
 
 - **Pass rate** = passed / executed; skipped cases are excluded. Detected known
   defects and flaky cases are not counted as passes.

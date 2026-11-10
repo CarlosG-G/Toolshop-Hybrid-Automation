@@ -103,6 +103,7 @@ export function collectCases(
           title,
           id: spec.title?.match(/\b(?:TC-[A-Z0-9]+-\d+|WB-\d+)\b/)?.[0] ?? null,
           type: caseType(testCase.projectName ?? "", spec.file ?? suiteFile, source),
+          project: testCase.projectName,
           status: classifiedStatus,
           durationMs: (testCase.results ?? []).reduce(
             (total, result) => total + (result.duration ?? 0),

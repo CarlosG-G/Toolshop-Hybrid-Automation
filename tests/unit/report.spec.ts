@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { expect, test } from "@playwright/test";
@@ -22,6 +22,7 @@ function playwrightReport(
   title: string,
   outcome: "expected" | "unexpected" | "flaky",
   expectedStatus: "passed" | "failed" = "passed",
+  projectName?: string,
 ) {
   return JSON.stringify({
     stats: {},
@@ -33,6 +34,7 @@ function playwrightReport(
             title,
             tests: [
               {
+                projectName,
                 status: outcome,
                 expectedStatus,
                 results:
@@ -56,11 +58,16 @@ function playwrightReport(
   });
 }
 
-async function buildReport(files: Record<string, string>, status = infrastructure) {
+async function buildReport(
+  files: Record<string, string>,
+  status = infrastructure,
+  reportSources = sources,
+) {
   const directory = await mkdtemp(join(tmpdir(), "toolshop-report-"));
   try {
     await mkdir(join(directory, "reports"));
     for (const [path, contents] of Object.entries(files)) {
+      await mkdir(dirname(join(directory, path)), { recursive: true });
       await writeFile(join(directory, path), contents);
     }
 
@@ -76,7 +83,7 @@ async function buildReport(files: Record<string, string>, status = infrastructur
           ...process.env,
           GITHUB_STEP_SUMMARY: "",
           TOOLSHOP_TARGET: "stable",
-          TOOLSHOP_REPORT_FILES: sources.join(";"),
+          TOOLSHOP_REPORT_FILES: reportSources.join(";"),
           TOOLSHOP_INFRA_STATUS: status,
         },
         timeout: 30_000,
@@ -156,6 +163,34 @@ test("reports expected defects and flaky retries using Playwright's JSON shape",
     ],
   });
   expect(markdown).toContain("Detected counts test observations, not unique defects.");
+});
+
+test("includes both SUT runs and identifies a WebKit retry in comparison evidence", async () => {
+  const stable = "reports/stable/reports/sut-ui-1.json";
+  const withBugs = "reports/with-bugs/reports/sut-ui-2.json";
+  const missing = "reports/with-bugs/reports/sut-ui-1.json";
+  const { report, markdown } = await buildReport(
+    {
+      [stable]: playwrightReport("TC-E2E-035", "expected", "passed", "chromium"),
+      [withBugs]: playwrightReport("TC-E2E-035", "flaky", "passed", "webkit"),
+    },
+    "stable=success; with_bugs=failure",
+    [
+      `local-from-stable=${stable}`,
+      `local-from-with-bugs=${withBugs}`,
+      `local-from-with-bugs=${missing}`,
+    ],
+  );
+
+  expect(report).toMatchObject({
+    totals: { passed: 1, flaky: 1, failed: 0 },
+    missingReports: [missing],
+    cases: [
+      { target: "local-from-stable", project: "chromium", status: "passed" },
+      { target: "local-from-with-bugs", project: "webkit", status: "flaky" },
+    ],
+  });
+  expect(markdown).toContain("| local-from-with-bugs | webkit |");
 });
 
 test("fails explicitly when no expected reports exist", async () => {

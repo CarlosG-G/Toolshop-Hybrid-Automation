@@ -22,5 +22,8 @@
 
 ### Fixed
 
-- Wait for asynchronous billing-address lookup before advancing to payment.
+- Wait for overlapping billing-address lookups and validate their responses
+  before advancing to payment.
+- Include both SUT browser matrices and project names in the nightly comparison,
+  including retries and missing reports.
 - Isolate nested Playwright artifacts from the parent test run.

@@ -211,8 +211,8 @@
             }
             document.querySelector("#missing-reports").hidden = false;
           }
-          renderTable("#cases", ["Target", "Type", "Test", "Status", "Duration"],
-            report.cases.map((testCase) => [testCase.target, testCase.type || "other", testCase.title, testCase.status, `${testCase.durationMs} ms`]),
+          renderTable("#cases", ["Target", "Type", "Project", "Test", "Status", "Duration"],
+            report.cases.map((testCase) => [testCase.target, testCase.type || "other", testCase.project || "Not reported", testCase.title, testCase.status, `${testCase.durationMs} ms`]),
             "No individual test cases were reported.");
         })
         .catch((error) => {

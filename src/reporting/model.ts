@@ -12,6 +12,7 @@ export interface ReportCase {
   title: string;
   id: string | null;
   type: string;
+  project?: string;
   status: TestStatus;
   durationMs: number;
   source: string;
@@ -89,6 +90,7 @@ export function isUnifiedReport(value: unknown): value is UnifiedReport {
         typeof item.title === "string" &&
         isNullableString(item.id) &&
         typeof item.type === "string" &&
+        (item.project === undefined || typeof item.project === "string") &&
         typeof item.status === "string" &&
         statuses.includes(item.status) &&
         typeof item.durationMs === "number" &&
