@@ -19,3 +19,7 @@
 - Restrict write, load and audit targets to loopback disposable environments.
 - Report known-defect and flaky outcomes separately from clean passes.
 - Require Node.js 22.19 or later.
+
+### Fixed
+
+- Wait for asynchronous billing-address lookup before advancing to payment.

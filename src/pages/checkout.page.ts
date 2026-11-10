@@ -1,15 +1,18 @@
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import type { Payment, PaymentMethod } from "../api/toolshop-api.js";
 
 const CHECKOUT_TIMEOUT_MS = 20_000;
 
 export class CheckoutPage {
-  constructor(private readonly page: Page) {}
+  constructor(
+    private readonly page: Page,
+    private readonly timeoutMs = CHECKOUT_TIMEOUT_MS,
+  ) {}
 
   async waitForAddressStep(): Promise<void> {
     await this.page.locator('[data-test="proceed-2"]').waitFor({
       state: "visible",
-      timeout: CHECKOUT_TIMEOUT_MS,
+      timeout: this.timeoutMs,
     });
   }
 
@@ -18,15 +21,20 @@ export class CheckoutPage {
     const proceedToPayment = this.page.locator('[data-test="proceed-3"]');
     await proceedToPayment.waitFor({
       state: "visible",
-      timeout: CHECKOUT_TIMEOUT_MS,
+      timeout: this.timeoutMs,
     });
     await this.page.getByLabel("Country").selectOption({ label: "Austria" });
     await this.page.getByPlaceholder("Your Postcode *").fill("1010");
     await this.page.getByPlaceholder("e.g. 42 *").fill("1");
+    for (const placeholder of ["Your Street *", "Your City *", "State *"]) {
+      await expect(this.page.getByPlaceholder(placeholder)).toHaveValue(/\S/, {
+        timeout: this.timeoutMs,
+      });
+    }
     await proceedToPayment.click();
     await this.paymentMethod().waitFor({
       state: "visible",
-      timeout: CHECKOUT_TIMEOUT_MS,
+      timeout: this.timeoutMs,
     });
   }
 

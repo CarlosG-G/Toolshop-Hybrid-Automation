@@ -131,6 +131,8 @@ The [checkout E2E matrix](tests/e2e/checkout.spec.ts) covers bank transfer, cash
 delivery, credit card, buy-now-pay-later, and gift card (`TC-E2E-010` to `TC-E2E-014`).
 Each case starts with a fresh browser/cart, checks payment, confirms the order,
 and verifies that the UI displays the invoice number returned by the API.
+Checkout waits for the asynchronous address lookup to populate the required
+billing fields before advancing; a missing result fails explicitly.
 Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are modified.
 
 ### Test types and design techniques
