@@ -67,5 +67,12 @@
   },
   "overrides": {
     "minimatch": "^11.0.5"
-  }
+  },
+  "license": "MIT",
+  "author": "Carles González",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CarlosG-G/Toolshop-Hybrid-Automation.git"
+  },
+  "homepage": "https://carlosg-g.github.io/Toolshop-Hybrid-Automation/"
 }

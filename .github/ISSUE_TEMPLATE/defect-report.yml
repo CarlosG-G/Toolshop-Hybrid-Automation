@@ -1,0 +1,85 @@
+name: Defect report
+description: Report a defect found in the system under test (ISTQB defect report).
+title: "DEF: "
+labels: [defect, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for defects in the Toolshop SUT detected by a test or exploratory session.
+        Problems in the test framework itself should use **Test improvement**.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Impact on the system (ISTQB glossary).
+      options: [Critical, Major, Minor, Trivial]
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Urgency of the fix.
+      options: [High, Medium, Low]
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Self-hosted SUT (local)
+        - Public stable
+        - Public with-bugs
+    validations:
+      required: true
+  - type: input
+    id: test-case
+    attributes:
+      label: Detected by
+      description: Test case ID or charter, for example TC-API-025.
+      placeholder: TC-API-025
+  - type: input
+    id: requirement
+    attributes:
+      label: Requirement or test basis
+      placeholder: OpenAPI UserRequest.dob, WCAG 2.1 SC 4.1.2…
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: dropdown
+    id: technique
+    attributes:
+      label: Test design technique
+      options:
+        - Equivalence partitioning
+        - Boundary value analysis
+        - Decision table
+        - State transition
+        - Error guessing
+        - Exploratory testing
+        - Other
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Links to the CI run, trace, screenshot or log.

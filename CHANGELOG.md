@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- MIT license, security policy, contributing guide, code of conduct and ISTQB
+  defect-report and test-improvement issue forms.
+- Build provenance attestation for release SBOMs.
+- Dashboard previews and a reviewer quick tour in the README.
+
 ## 1.0.0
 
 ### Added

@@ -1,0 +1,49 @@
+name: Test improvement
+description: Propose new coverage, fix a flaky test or improve the framework.
+title: "test: "
+labels: [test-improvement]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - New coverage
+        - Flaky or unreliable test
+        - Framework or tooling
+        - CI or reporting
+        - Documentation
+    validations:
+      required: true
+  - type: dropdown
+    id: level
+    attributes:
+      label: Test level or type
+      options:
+        - Unit
+        - API / contract
+        - E2E / UI
+        - BDD
+        - Accessibility
+        - Visual
+        - Performance / load
+        - Security
+        - Not applicable
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation and risk addressed
+      description: Which product risk or requirement does this improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Acceptance criteria
+      placeholder: "- Linked to REQ-…\n- Runs in the hermetic gate\n- Traceability matrix regenerated"
