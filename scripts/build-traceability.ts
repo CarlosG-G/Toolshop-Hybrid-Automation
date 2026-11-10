@@ -13,7 +13,7 @@ interface Requirement {
 const ID = /\b(?:TC-[A-Z0-9]+-\d+|WB-\d+)\b/g;
 const RANGE = /\b(TC-[A-Z0-9]+)-(\d+)\.\.(\d+)\b/g;
 const DEFECT =
-  /^\|\s*(DEF-\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|/gm;
+  /^\|\s*(DEF-\d+)\s*\|(?:\s*\[#\d+\]\((https:\/\/[^)\s]+)\)\s*\|)?\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|/gm;
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
@@ -47,11 +47,12 @@ export function collectTestIds(root: string): string[] {
 export function collectDefectDetails(markdown: string): Defect[] {
   const defects = [...markdown.matchAll(DEFECT)].map((match) => ({
     id: match[1]!,
-    title: match[2]!.trim(),
-    severity: match[3]!.trim(),
-    priority: match[4]!.trim(),
-    tests: [...match[5]!.matchAll(ID)].map((id) => id[0]),
-    status: match[6]!.trim(),
+    title: match[3]!.trim(),
+    severity: match[4]!.trim(),
+    priority: match[5]!.trim(),
+    tests: [...match[6]!.matchAll(ID)].map((id) => id[0]),
+    status: match[7]!.trim(),
+    ...(match[2] ? { issue: match[2] } : {}),
   }));
   const seen = new Set<string>();
   for (const defect of defects) {
@@ -120,7 +121,7 @@ function render(
   });
   const defectRows = defects.map(
     (defect) =>
-      `| ${defect.id} | ${defect.severity} | ${defect.tests.join(", ")} | ${defect.status} |`,
+      `| ${defect.issue ? `[${defect.id}](${defect.issue})` : defect.id} | ${defect.severity} | ${defect.tests.join(", ")} | ${defect.status} |`,
   );
   return [
     "# Traceability matrix",

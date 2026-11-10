@@ -12,7 +12,9 @@
 test management and evidence organized using ISTQB terminology.
 
 [Explore the dashboard](https://carlosg-g.github.io/Toolshop-Hybrid-Automation/) |
-[Test strategy and plan](docs/test-management/test-strategy.md) |
+[Test strategy](docs/test-management/test-strategy.md) |
+[Test plan](docs/test-management/test-plan.md) |
+[Completion report](docs/test-management/test-completion-report.md) |
 [Requirement traceability](docs/test-management/traceability-matrix.md) |
 [Defect log](docs/test-management/defect-log.md)
 
@@ -192,7 +194,10 @@ Docker is not required on your workstation when running the workflow in GitHub A
 ## Test management and evidence
 
 The [strategy and master plan](docs/test-management/test-strategy.md) define
-scope, entry/exit criteria, risk scoring and design techniques. Requirements and
+scope, entry/exit criteria, risk scoring and design techniques. The level
+[test plan](docs/test-management/test-plan.md) and the
+[test completion report](docs/test-management/test-completion-report.md) cover the
+v1.0 cycle, and every recorded defect is a labelled GitHub issue. Requirements and
 case IDs are checked by `npm run traceability`; the
 [generated matrix](docs/test-management/traceability-matrix.md) also links
 recorded defects. BDD features reuse page objects and the checkout helper.

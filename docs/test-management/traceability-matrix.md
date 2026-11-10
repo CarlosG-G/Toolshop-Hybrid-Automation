@@ -18,11 +18,11 @@ Requirements: **9** · Test cases: **106** · Defects: **6**
 
 ## Defects
 
-| Defect  | Severity | Test cases  | Status                 |
-| ------- | -------- | ----------- | ---------------------- |
-| DEF-001 | Major    | TC-API-025  | Open                   |
-| DEF-002 | Minor    | TC-API-042  | Open                   |
-| DEF-003 | Minor    | TC-API-003  | Open (public env only) |
-| DEF-004 | Major    | TC-API-062  | Open                   |
-| DEF-005 | Major    | TC-A11Y-002 | Open                   |
-| DEF-006 | Minor    | TC-API-067  | Open                   |
+| Defect                                                                       | Severity | Test cases  | Status                 |
+| ---------------------------------------------------------------------------- | -------- | ----------- | ---------------------- |
+| [DEF-001](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/10) | Major    | TC-API-025  | Open                   |
+| [DEF-002](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/11) | Minor    | TC-API-042  | Open                   |
+| [DEF-003](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/12) | Minor    | TC-API-003  | Open (public env only) |
+| [DEF-004](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/13) | Major    | TC-API-062  | Open                   |
+| [DEF-005](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Major    | TC-A11Y-002 | Open                   |
+| [DEF-006](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Minor    | TC-API-067  | Open                   |
