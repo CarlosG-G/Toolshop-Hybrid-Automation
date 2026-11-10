@@ -36,10 +36,12 @@ async function checkApi(url) {
 }
 
 async function checkSite(url) {
-  const { chromium } = await import("@playwright/test");
+  const { chromium, devices } = await import("@playwright/test");
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage();
+    // Match the UI suites: the default "HeadlessChrome" user agent is rejected (HTTP 403)
+    // by the public site's CDN on hosted CI runners.
+    const page = await browser.newPage({ ...devices["Desktop Chrome"] });
     const response = await page.goto(url, {
       waitUntil: "domcontentloaded",
       timeout: 15_000,
@@ -48,7 +50,9 @@ async function checkSite(url) {
       throw new Error("Site navigation returned no HTTP response.");
     }
     if (!response.ok()) {
-      throw new Error(`HTTP ${response.status()} ${response.statusText()}`);
+      const mitigated = response.headers()["cf-mitigated"];
+      const detail = mitigated ? ` (CDN mitigation: ${mitigated})` : "";
+      throw new Error(`HTTP ${response.status()} ${response.statusText()}${detail}`);
     }
   } finally {
     await browser.close();
