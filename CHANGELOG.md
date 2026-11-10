@@ -26,6 +26,7 @@
 
 ### Fixed
 
+- Override the vulnerable transitive `minimatch` used by the ESLint peer.
 - Wait for overlapping billing-address lookups and validate their responses
   before advancing to payment.
 - Include both SUT browser matrices and project names in the nightly comparison,
