@@ -9,6 +9,7 @@
         "TC-API-064",
         "WB-01",
         "TC-A11Y-001",
+        "TC-A11Y-005",
         "TC-PERF-00[1-3]",
         "TC-MOB-00[12]",
         "TC-RES-00[1-3]"
@@ -46,13 +47,19 @@
       "id": "REQ-CART-01",
       "title": "Customers can build a cart with valid products",
       "risk": "Medium",
-      "tests": ["TC-API-03[01]", "TC-API-065", "TC-VIB-001"]
+      "tests": ["TC-API-03[01]", "TC-API-065", "TC-VIB-001", "TC-A11Y-006"]
     },
     {
       "id": "REQ-PAY-01",
       "title": "Payment data is validated per method before an order is placed",
       "risk": "High",
-      "tests": ["TC-API-04\\d", "TC-E2E-03\\d", "TC-BDD-01[0-4]", "TC-BDD-02[0-5]"]
+      "tests": [
+        "TC-API-04\\d",
+        "TC-E2E-03\\d",
+        "TC-BDD-01[0-4]",
+        "TC-BDD-02[0-5]",
+        "TC-A11Y-007"
+      ]
     },
     {
       "id": "REQ-CHK-01",
