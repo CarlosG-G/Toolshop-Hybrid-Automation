@@ -13,6 +13,8 @@
   signature (roadmap item RM-03).
 - TC-A11Y-005 to TC-A11Y-007 extend the axe-core scan to product detail, cart and the
   checkout payment step (roadmap item RM-07).
+- TC-VIS-002 to TC-VIS-004 add Linux SUT visual baselines for registration, product detail
+  and the checkout payment step (roadmap item RM-06).
 
 ## 1.1.0
 

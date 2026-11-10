@@ -149,19 +149,19 @@ both the UI and API, including when either URL is overridden.
 
 ## Test suites
 
-| Suite                            | Tools               | Scope and CI behavior                                                   |
-| -------------------------------- | ------------------- | ----------------------------------------------------------------------- |
-| `tests/unit`, `tests/mocked`     | Playwright          | Required hermetic tests and deterministic network mocks                 |
-| `tests/hermetic`                 | Playwright + Vibium | Required hybrid check on a local fixture                                |
-| `tests/api`, `tests/contract`    | Playwright + Ajv    | Required API and OpenAPI regression on the disposable SUT               |
-| `tests/e2e`                      | Playwright          | Required registration, checkout and payment journeys                    |
-| `tests/features`                 | Playwright BDD      | Required Gherkin registration, checkout and invalid-payment scenarios   |
-| `tests/visual/sut.spec.ts`       | Playwright          | Required Linux login-form visual baseline in a pinned browser container |
-| `tests/vibium/local.spec.ts`     | Vibium              | Independent required login, cart and negative-login checks on the SUT   |
-| `tests/security`                 | Playwright          | Required API authorization, JWT, injection and data-exposure checks     |
-| `tests/nonfunctional`            | Playwright + axe    | Required accessibility, budgets, responsive and resilience checks       |
-| `tests/vibium`, `tests/hybrid`   | Vibium + Playwright | Public smoke diagnostics are informational                              |
-| `tests/load`, ZAP and Lighthouse | k6, ZAP, Lighthouse | Scheduled checks on a separate disposable SUT                           |
+| Suite                            | Tools               | Scope and CI behavior                                                                                                 |
+| -------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `tests/unit`, `tests/mocked`     | Playwright          | Required hermetic tests and deterministic network mocks                                                               |
+| `tests/hermetic`                 | Playwright + Vibium | Required hybrid check on a local fixture                                                                              |
+| `tests/api`, `tests/contract`    | Playwright + Ajv    | Required API and OpenAPI regression on the disposable SUT                                                             |
+| `tests/e2e`                      | Playwright          | Required registration, checkout and payment journeys                                                                  |
+| `tests/features`                 | Playwright BDD      | Required Gherkin registration, checkout and invalid-payment scenarios                                                 |
+| `tests/visual/sut.spec.ts`       | Playwright          | Required Linux visual baselines (login, registration, product detail, checkout payment) in a pinned browser container |
+| `tests/vibium/local.spec.ts`     | Vibium              | Independent required login, cart and negative-login checks on the SUT                                                 |
+| `tests/security`                 | Playwright          | Required API authorization, JWT, injection and data-exposure checks                                                   |
+| `tests/nonfunctional`            | Playwright + axe    | Required accessibility, budgets, responsive and resilience checks                                                     |
+| `tests/vibium`, `tests/hybrid`   | Vibium + Playwright | Public smoke diagnostics are informational                                                                            |
+| `tests/load`, ZAP and Lighthouse | k6, ZAP, Lighthouse | Scheduled checks on a separate disposable SUT                                                                         |
 
 `tests/mocked` also runs axe-core against the deterministic fixture. Playwright
 traces, screenshots, and HTML reports are retained as CI artifacts.
