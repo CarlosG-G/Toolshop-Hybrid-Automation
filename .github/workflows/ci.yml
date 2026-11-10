@@ -6,25 +6,34 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      suite:
+        description: Test suite (static and hermetic checks always run)
+        type: choice
+        options:
+          [all, hermetic, hybrid, api, ui, nonfunctional, bdd, visual, vibium, public]
+        default: all
       target:
-        description: Toolshop environment to test
+        description: Public diagnostic target (SUT suites always use local services)
         type: choice
         options: [stable, with-bugs]
         default: stable
       publish_report:
-        description: Publish the dashboard to GitHub Pages
+        description: Publish a full run to GitHub Pages (all suite only)
         type: boolean
-        default: true
+        default: false
       browser_matrix:
         description: Run UI checks in Chromium, Firefox, and WebKit
         type: boolean
         default: false
       update_visual_baselines:
-        description: Generate a reviewable Linux SUT baseline artifact
+        description: Generate a reviewable Linux SUT baseline artifact (all/visual only)
         type: boolean
         default: false
   workflow_call:
     inputs:
+      suite:
+        type: string
+        default: all
       target:
         type: string
         default: stable
@@ -49,8 +58,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  select:
+    name: Select test suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sut_suites: ${{ steps.selection.outputs.sut_suites }}
+      run_sut: ${{ steps.selection.outputs.run_sut }}
+      run_hybrid: ${{ steps.selection.outputs.run_hybrid }}
+      run_public: ${{ steps.selection.outputs.run_public }}
+      report_files: ${{ steps.selection.outputs.report_files }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Validate and select suites
+        id: selection
+        env:
+          TOOLSHOP_TEST_SUITE: ${{ inputs.suite || 'all' }}
+        run: node scripts/select-test-suite.mjs
+
   quality:
     name: Static and hermetic gate
+    needs: select
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -113,6 +144,8 @@ jobs:
 
   hybrid:
     name: Vibium and hybrid smoke
+    needs: select
+    if: needs.select.outputs.run_hybrid == 'true'
     runs-on: windows-latest
     timeout-minutes: 15
     env:
@@ -174,12 +207,14 @@ jobs:
 
   sut:
     name: SUT / ${{ matrix.suite }}
+    needs: select
+    if: needs.select.outputs.run_sut == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        suite: [api, ui-1, ui-2, nonfunctional, bdd, visual, vibium]
+        suite: ${{ fromJSON(needs.select.outputs.sut_suites) }}
     env:
       TOOLSHOP_TARGET: local
       TOOLSHOP_BROWSER_MATRIX: ${{ inputs.browser_matrix && '1' || '0' }}
@@ -325,6 +360,8 @@ jobs:
 
   live:
     name: Optional public diagnostics
+    needs: select
+    if: needs.select.outputs.run_public == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -394,7 +431,7 @@ jobs:
   report:
     name: Aggregate evidence
     if: always() && !cancelled()
-    needs: [quality, sut, hybrid, live]
+    needs: [select, quality, sut, hybrid, live]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -448,7 +485,7 @@ jobs:
       - name: Build traceability and unified report
         env:
           TOOLSHOP_INFRA_STATUS: "quality=${{ needs.quality.result }}; sut=${{ needs.sut.result }}; hybrid=${{ needs.hybrid.result }}; vibium_hermetic=${{ needs.hybrid.outputs.hermetic_status }}; vibium_site=${{ needs.hybrid.outputs.site_health }}; vibium_live=${{ needs.hybrid.outputs.live_status }}; live_api_health=${{ needs.live.outputs.api_health }}; live_api=${{ needs.live.outputs.api }}; live_ui_health=${{ needs.live.outputs.site_health }}; live_ui=${{ needs.live.outputs.ui }}"
-          TOOLSHOP_REPORT_FILES: "reports/hermetic.json;reports/hermetic-hybrid.json;local=reports/sut-api.json;local=reports/sut-ui-1.json;local=reports/sut-ui-2.json;local=reports/sut-nonfunctional.json;local=reports/sut-bdd.json;local=reports/sut-visual.json;local=reports/sut-vibium.json;reports/live-api.json;reports/live-ui.json;reports/vibium.json"
+          TOOLSHOP_REPORT_FILES: ${{ needs.select.outputs.report_files }}
         run: |
           npm run traceability
           npm run report:build
@@ -465,11 +502,11 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Configure GitHub Pages
-        if: (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != ''
+        if: (!inputs.suite || inputs.suite == 'all') && (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != ''
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload Pages artifact
         id: pages_upload
-        if: (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != ''
+        if: (!inputs.suite || inputs.suite == 'all') && (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != ''
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: site

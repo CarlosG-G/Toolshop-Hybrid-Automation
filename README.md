@@ -200,6 +200,34 @@ designed cases. Project names identify the browser when Playwright reports it.
 
 ## CI, quality budgets and limitations
 
+### Run tests from GitHub Actions
+
+1. Open **Actions > Toolshop automation > Run workflow** and select a branch.
+2. Choose `suite`: `all`, `hermetic`, `hybrid`, `api`, `ui`, `nonfunctional`,
+   `bdd`, `visual`, `vibium`, or `public`. Static and hermetic checks always run.
+   `api` includes API, contract and security tests; `ui` runs both E2E shards.
+3. Enable `browser_matrix` for UI checks in Chromium, Firefox and WebKit;
+   otherwise UI checks use Chromium. BDD, visual and Vibium keep their dedicated
+   browser configuration.
+4. Download the combined report and per-suite evidence from **Artifacts**.
+   Only selected reports are expected; failures remain visible in the run.
+
+SUT suites always use disposable, locally seeded services on the runner.
+`target` selects only the public environment used by optional diagnostics.
+Manual runs do not publish by default. To replace the public dashboard, select
+`all` and enable `publish_report`; partial runs never replace it.
+`update_visual_baselines` produces a reviewable baseline artifact for `all` or
+`visual` runs; it does not commit snapshots automatically.
+
+Two additional manual workflows are available under **Actions > Run workflow**:
+
+| Workflow                       | Purpose                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------- |
+| Toolshop nightly comparison    | Full stable/with-bugs comparison, browser matrix and published comparison dashboard   |
+| Nightly load and security scan | k6 smoke/load, passive ZAP scan and five-run Lighthouse budgets on the disposable SUT |
+
+### Quality gates
+
 - `ci.yml` gates static checks, hermetic and hybrid tests, plus parallel suites
   on isolated seeded Toolshop instances. Public diagnostics remain informational.
 - `nightly.yml` compares stable and intentionally buggy public targets and runs
