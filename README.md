@@ -36,6 +36,22 @@ Public-site checks are read-only and informational, not the regression gate.
 | 5 minutes    | [Test plan](docs/test-management/test-plan.md), [defect log](docs/test-management/defect-log.md) and the [defect issues](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues?q=label%3Adefect) |
 | 15 minutes   | [BDD features](tests/features), [API contract tests](tests/contract), [hybrid Playwright + Vibium flow](tests/hybrid) and the [CI pipeline](.github/workflows/ci.yml)                                     |
 
+### Defects found by the suite
+
+Every SUT defect is an expected failure frozen on its observed signature: if the
+signature changes (fixed, or failing for another reason) the gate fails and
+forces triage. Full reports are in the [defect log](docs/test-management/defect-log.md).
+
+| Defect  | Issue                                                                    | Finding                                               | Severity | Detected by                                                           | Frozen signature                                   |
+| ------- | ------------------------------------------------------------------------ | ----------------------------------------------------- | -------- | --------------------------------------------------------------------- | -------------------------------------------------- |
+| DEF-001 | [#10](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/10) | Registration accepts customers older than 75          | Major    | [TC-API-025](tests/api/auth.spec.ts)                                  | HTTP 201 instead of 422                            |
+| DEF-002 | [#11](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/11) | Payment check accepts undocumented methods            | Minor    | [TC-API-042](tests/api/checkout.spec.ts)                              | HTTP 200 instead of 4xx                            |
+| DEF-003 | [#12](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/12) | Public API returns 500 for an unknown product         | Minor    | [TC-API-003](tests/api/catalog.spec.ts)                               | Not frozen: public environment only, informational |
+| DEF-004 | [#13](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/13) | Registration API accepts a malformed email            | Major    | [TC-API-062](tests/api/robustness.spec.ts)                            | HTTP 201 instead of 422                            |
+| DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name          | Major    | [TC-A11Y-002, TC-A11Y-003](tests/nonfunctional/accessibility.spec.ts) | axe `button-name` on `.btn-outline-secondary`      |
+| DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth       | Minor    | [TC-API-067](tests/api/robustness.spec.ts)                            | HTTP 201 instead of 422                            |
+| DEF-007 | [#19](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19) | Registration rejects customers on their 18th birthday | Minor    | [TC-API-068](tests/api/auth.spec.ts)                                  | HTTP 422 with the `dob` age error                  |
+
 ![Playwright searches and adds an item in the hermetic mock fixture](docs/assets/hermetic-demo.gif)
 
 _The animation is a real Playwright execution against the local mocked fixture;

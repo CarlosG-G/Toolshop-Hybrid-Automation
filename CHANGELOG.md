@@ -9,6 +9,8 @@
 - TC-API-068 and TC-API-069 cover the exact 18th and 75th birthdays (roadmap item RM-01).
 - DEF-007 ([#19](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19)): the
   registration API rejects customers on their 18th birthday; TC-API-068 freezes the signature.
+- README "Defects found by the suite" table linking each DEF ID to its issue, test and frozen
+  signature (roadmap item RM-03).
 
 ## 1.1.0
 
