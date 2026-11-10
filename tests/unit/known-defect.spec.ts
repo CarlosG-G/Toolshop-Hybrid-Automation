@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,9 +8,12 @@ import { collectCases, type PlaywrightReport } from "../../src/reporting/playwri
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 
-test("known-defect guards only mark the observed signature as expected", async () => {
+test("known-defect guards classify signatures without deleting parent artifacts", async () => {
   const directory = await mkdtemp(join(tmpdir(), "toolshop-defect-guard-"));
+  const parentArtifact = test.info().outputPath("parent-artifact.txt");
   try {
+    await mkdir(test.info().outputDir, { recursive: true });
+    await writeFile(parentArtifact, "preserve");
     const config = join(directory, "playwright.config.cjs");
     const output = join(directory, "report.json");
     await writeFile(
@@ -19,6 +22,7 @@ test("known-defect guards only mark the observed signature as expected", async (
 module.exports = defineConfig({
   testDir: ${JSON.stringify(join(root, "tests", "fixtures"))},
   testMatch: "known-defect-cases.ts",
+  outputDir: ${JSON.stringify(join(directory, "test-results"))},
   reporter: [["json", { outputFile: ${JSON.stringify(output)} }]],
   retries: 0,
   workers: 1
@@ -46,6 +50,7 @@ module.exports = defineConfig({
       },
     );
     expect(result.code, result.stderr).toBe(1);
+    expect(await readFile(parentArtifact, "utf8")).toBe("preserve");
     const report = JSON.parse(await readFile(output, "utf8")) as PlaywrightReport;
     const cases = collectCases(report.suites ?? [], output, "local");
     expect(cases.map((entry) => entry.status)).toEqual([
@@ -55,6 +60,7 @@ module.exports = defineConfig({
       "passed",
     ]);
   } finally {
+    await rm(parentArtifact, { force: true });
     await rm(directory, { recursive: true, force: true });
   }
 });

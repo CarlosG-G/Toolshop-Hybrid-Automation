@@ -23,3 +23,4 @@
 ### Fixed
 
 - Wait for asynchronous billing-address lookup before advancing to payment.
+- Isolate nested Playwright artifacts from the parent test run.
