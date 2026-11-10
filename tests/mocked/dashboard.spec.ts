@@ -69,6 +69,54 @@ test("shows the browser project for a flaky SUT case", async ({ page }) => {
   );
 });
 
+test("lists problems first and filters evidence by status and search", async ({
+  page,
+}) => {
+  await openDashboard(page, [], {
+    totals: { passed: 2, detected: 0, failed: 1, flaky: 0, skipped: 0 },
+    cases: [
+      {
+        target: "stable",
+        type: "api",
+        title: "TC-API-001 lists products",
+        status: "passed",
+        durationMs: 4,
+      },
+      {
+        target: "stable",
+        type: "e2e",
+        title: "TC-E2E-010 checkout",
+        status: "failed",
+        durationMs: 9,
+      },
+      {
+        target: "local",
+        type: "api",
+        title: "TC-API-002 filters products",
+        status: "passed",
+        durationMs: 3,
+      },
+    ],
+  });
+
+  const rows = page.locator("#cases tbody tr");
+  await expect(rows.first()).toContainText("TC-E2E-010");
+  await expect(page.locator("#verdict")).toHaveText(
+    "1 unexpected failure needs attention",
+  );
+  await expect(page.locator("#case-count")).toHaveText("Showing 3 of 3");
+
+  await page.getByRole("button", { name: "passed (2)" }).click();
+  await expect(rows).toHaveCount(2);
+  await page.getByLabel("Search").fill("filters");
+  await expect(rows).toHaveCount(1);
+  await expect(rows).toContainText("TC-API-002");
+  await page.getByLabel("Search").fill("missing");
+  await expect(page.locator("#cases")).toHaveText(
+    "No test cases match the current filters.",
+  );
+});
+
 test("provides a self-contained dashboard icon", async ({ page }) => {
   await openDashboard(page, []);
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
