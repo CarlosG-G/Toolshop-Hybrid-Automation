@@ -39,7 +39,8 @@
     "report:exit": "tsx scripts/build-exit-report.ts",
     "lighthouse:collect": "tsx scripts/run-lighthouse.ts",
     "lighthouse:report": "tsx scripts/build-lighthouse-report.ts",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "social-preview": "node scripts/social-preview.mjs"
   },
   "dependencies": {
     "vibium": "26.8.21"

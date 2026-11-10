@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `npm run social-preview` renders the 1280x640 GitHub social preview card to `docs/assets/social-preview.png`.
+
 ## 1.1.0
 
 ### Added
