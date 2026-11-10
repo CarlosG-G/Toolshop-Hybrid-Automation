@@ -92,7 +92,7 @@ jobs:
           fi
       - name: Upload hermetic reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ env.TOOLSHOP_TARGET }}-quality-json-${{ github.run_attempt }}
           path: |
@@ -102,7 +102,7 @@ jobs:
           retention-days: 14
       - name: Upload hermetic traces
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ env.TOOLSHOP_TARGET }}-quality-evidence-${{ github.run_attempt }}
           path: |
@@ -153,7 +153,7 @@ jobs:
         run: '"Optional public Vibium: health=${{ steps.site_health.outcome }}, suite=${{ steps.live_vibium.outcome }}." >> $env:GITHUB_STEP_SUMMARY'
       - name: Upload hybrid reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ env.TOOLSHOP_TARGET }}-hybrid-json-${{ github.run_attempt }}
           path: |
@@ -163,7 +163,7 @@ jobs:
           retention-days: 14
       - name: Upload hybrid traces
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ env.TOOLSHOP_TARGET }}-hybrid-evidence-${{ github.run_attempt }}
           path: |
@@ -293,7 +293,7 @@ jobs:
           node -e "const fs=require('node:fs'); fs.writeFileSync('reports/status-sut-'+process.env.SUITE_NAME+'.json', JSON.stringify({sut:process.env.SUT_STATUS,suite:process.env.SUITE_STATUS}));"
       - name: Upload suite report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ inputs.target || 'stable' }}-sut-${{ matrix.suite }}-json-${{ github.run_attempt }}
           path: |
@@ -303,7 +303,7 @@ jobs:
           retention-days: 14
       - name: Upload suite traces
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ inputs.target || 'stable' }}-sut-${{ matrix.suite }}-evidence-${{ github.run_attempt }}
           path: |
@@ -313,7 +313,7 @@ jobs:
           retention-days: 14
       - name: Upload generated Linux baseline
         if: always() && matrix.suite == 'visual' && inputs.update_visual_baselines
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-linux-sut-baseline-${{ github.run_attempt }}
           path: tests/visual/sut.spec.ts-snapshots/
@@ -372,7 +372,7 @@ jobs:
           echo "Optional public diagnostics: API health=${{ steps.api_health.outcome }}, API suite=${{ steps.api.outcome }}, UI health=${{ steps.site_health.outcome }}, UI suite=${{ steps.ui.outcome }}. These checks do not gate the disposable SUT." >> "$GITHUB_STEP_SUMMARY"
       - name: Upload public reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ env.TOOLSHOP_TARGET }}-live-json-${{ github.run_attempt }}
           path: |
@@ -382,7 +382,7 @@ jobs:
           retention-days: 14
       - name: Upload public traces
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ env.TOOLSHOP_TARGET }}-live-evidence-${{ github.run_attempt }}
           path: |
@@ -456,7 +456,7 @@ jobs:
           npm run dashboard:build
       - name: Upload combined report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: toolshop-${{ env.TOOLSHOP_TARGET }}-reports
           path: |
