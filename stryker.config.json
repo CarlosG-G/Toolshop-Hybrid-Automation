@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "npx playwright test --config playwright.mutation.config.ts"
+  },
+  "mutate": [
+    "src/config/env.ts",
+    "src/reporting/exit-report.ts",
+    "src/reporting/history.ts",
+    "src/reporting/quality.ts",
+    "src/api/openapi-contract.ts"
+  ],
+  "ignorePatterns": [
+    "playwright-report",
+    "test-results",
+    "reports",
+    ".features-gen",
+    "site",
+    "docs/assets"
+  ],
+  "reporters": ["html", "clear-text", "progress", "json"],
+  "htmlReporter": { "fileName": "reports/mutation/index.html" },
+  "jsonReporter": { "fileName": "reports/mutation/mutation.json" },
+  "thresholds": { "high": 80, "low": 60, "break": 65 },
+  "concurrency": 4,
+  "timeoutMS": 60000,
+  "tsconfigFile": "tsconfig.stryker-disabled.json",
+  "tempDirName": ".stryker-tmp",
+  "cleanTempDir": "always"
+}

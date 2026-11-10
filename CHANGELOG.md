@@ -1,8 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.1.0
 
 ### Added
+
+- StrykerJS mutation testing with a weekly workflow, job-summary score and HTML
+  report artifact; baseline mutation score 70.14 %.
 
 - MIT license, security policy, contributing guide, code of conduct and ISTQB
   defect-report and test-improvement issue forms.
@@ -14,6 +17,7 @@
 ### Changed
 
 - Branch protection on `main`: pull requests, linear history and required checks.
+- `src/config/env.ts` exposes a pure `resolveToolshopConfig()` covered by new unit tests.
 
 ## 1.0.0
 

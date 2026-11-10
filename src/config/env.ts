@@ -44,16 +44,20 @@ export function allowsLocalWrites(
   });
 }
 
-const target = parseTarget(process.env.TOOLSHOP_TARGET);
-const defaults = targets[target];
-const siteUrl = process.env.TOOLSHOP_SITE_URL ?? defaults.siteUrl;
-const apiUrl = process.env.TOOLSHOP_API_URL ?? defaults.apiUrl;
+export function resolveToolshopConfig(env: NodeJS.ProcessEnv) {
+  const target = parseTarget(env.TOOLSHOP_TARGET);
+  const defaults = targets[target];
+  const siteUrl = env.TOOLSHOP_SITE_URL ?? defaults.siteUrl;
+  const apiUrl = env.TOOLSHOP_API_URL ?? defaults.apiUrl;
 
-export const config = {
-  target,
-  siteUrl,
-  apiUrl,
-  isLive: process.env.TOOLSHOP_MODE !== "mock",
-  /** Write operations are limited to the disposable SUT on loopback addresses. */
-  allowsWrites: allowsLocalWrites(target, siteUrl, apiUrl),
-} as const;
+  return {
+    target,
+    siteUrl,
+    apiUrl,
+    isLive: env.TOOLSHOP_MODE !== "mock",
+    /** Write operations are limited to the disposable SUT on loopback addresses. */
+    allowsWrites: allowsLocalWrites(target, siteUrl, apiUrl),
+  } as const;
+}
+
+export const config = resolveToolshopConfig(process.env);
