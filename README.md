@@ -259,9 +259,9 @@ Other workflows run automatically; the nightly ones can also be started from
   displayed explicitly.
 - GitHub Actions are pinned by commit SHA. CI checks production dependencies
   with `npm audit --omit=dev --audit-level=high` and produces a CycloneDX SBOM.
-  The full development audit currently reports a moderate
-  [minimatch advisory](https://github.com/advisories/GHSA-g3hv-75wg-m249) in
-  the ESLint peer dependency; Dependabot tracks dependency updates.
+  An npm `overrides` entry pins `minimatch` to a patched 11.x release for the
+  ESLint peer used by the oxlint Playwright plugin, so the full audit is clean.
+  Dependabot groups updates and opens security fixes automatically.
 - No AI or application secrets are required. Vibium MCP can expose browser
   controls to a separately configured client; CI does not invoke an LLM.
 
