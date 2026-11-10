@@ -113,8 +113,9 @@ npm run test:mutation   # optional, about 20 minutes
 
 Hermetic tests run against a local fixture and deterministic mocked API. They
 do not depend on Toolshop being available. Mutation testing measures whether those
-unit tests detect injected faults: the baseline score is **70.14 %** (556 mutants),
-with `src/config/env.ts` raised from 44.8 % to 96.6 % by the tests it exposed. Both the Playwright gate and the
+unit tests detect injected faults: the score is **80.22 %** (556 mutants, up from a
+70.14 % baseline), with `src/config/env.ts` raised from 44.8 % to 96.6 % and
+`src/reporting/history.ts` to 100 % by the tests they exposed. Both the Playwright gate and the
 separate Playwright/Vibium hybrid smoke are required in CI. CI retains traces,
 screenshots and reports as artifacts.
 
@@ -184,7 +185,7 @@ Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are mo
 | Positive functional (API, UI) | `tests/api`, `tests/e2e`                                     | Use-case testing, data-driven equivalence classes  |
 | Negative and validation       | `tests/api/robustness.spec.ts`, `tests/e2e/negative.spec.ts` | Equivalence partitioning, BVA, error guessing      |
 | Payment rule partitions       | `src/data/payments.ts` (shared by API and UI)                | Invalid partitions per field, client/server parity |
-| Mutation (test effectiveness) | `stryker.config.json`, `.github/workflows/mutation.yml`      | StrykerJS mutation score, break threshold 65 %     |
+| Mutation (test effectiveness) | `stryker.config.json`, `.github/workflows/mutation.yml`      | StrykerJS mutation score, break threshold 70 %     |
 | Contract                      | `tests/contract`                                             | OpenAPI schema validation                          |
 | BDD                           | `tests/features`                                             | Scenarios and outlines using shared page objects   |
 | Security                      | `tests/security`                                             | OWASP API Security Top 10                          |

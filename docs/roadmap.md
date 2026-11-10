@@ -25,12 +25,12 @@ the API rejects customers on their 18th birthday.
 
 ## Phase 2: mid-term
 
-| ID    | Improvement                                                                                  | Why                                                                                         | Acceptance criteria                                                                                                        | Effort | Status  |
-| ----- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
-| RM-04 | Run the live local SUT suite (`npm run test:local`) in a CI job using Docker Compose         | The public sites return 403 on GitHub-hosted runners, so live checks are informational only | A workflow starts the SUT, runs the `api`, `e2e` and `bdd` projects with writes enabled, uploads the report and tears down | M      | done    |
-| RM-05 | Raise the mutation score from 70.14% to at least 75% and the break threshold from 65% to 70% | Surviving mutants show assertions that do not detect real changes                           | Weekly mutation run reports at least 75%; `stryker.config.json` break threshold updated                                    | M      | planned |
-| RM-06 | Extend visual baselines to checkout, registration and product detail on the local SUT        | Only two visual baselines exist today                                                       | Three new `toHaveScreenshot` checks with masked dynamic content and stable reruns                                          | M      | done    |
-| RM-07 | Extend the axe-core scan to product detail, cart and checkout                                | TC-A11Y-001 to 004 cover home, login, registration and contact only; checkout has risk 9    | New TC-A11Y IDs for the three pages; any critical finding logged as a defect and frozen with `markKnownDefect`             | S      | done    |
+| ID    | Improvement                                                                                  | Why                                                                                         | Acceptance criteria                                                                                                        | Effort | Status |
+| ----- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| RM-04 | Run the live local SUT suite (`npm run test:local`) in a CI job using Docker Compose         | The public sites return 403 on GitHub-hosted runners, so live checks are informational only | A workflow starts the SUT, runs the `api`, `e2e` and `bdd` projects with writes enabled, uploads the report and tears down | M      | done   |
+| RM-05 | Raise the mutation score from 70.14% to at least 75% and the break threshold from 65% to 70% | Surviving mutants show assertions that do not detect real changes                           | Weekly mutation run reports at least 75%; `stryker.config.json` break threshold updated                                    | M      | done   |
+| RM-06 | Extend visual baselines to checkout, registration and product detail on the local SUT        | Only two visual baselines exist today                                                       | Three new `toHaveScreenshot` checks with masked dynamic content and stable reruns                                          | M      | done   |
+| RM-07 | Extend the axe-core scan to product detail, cart and checkout                                | TC-A11Y-001 to 004 cover home, login, registration and contact only; checkout has risk 9    | New TC-A11Y IDs for the three pages; any critical finding logged as a defect and frozen with `markKnownDefect`             | S      | done   |
 
 RM-04 review: already in place before this roadmap. The `SUT / <suite>` jobs in
 [`ci.yml`](../.github/workflows/ci.yml) start the SUT with Docker Compose
@@ -51,6 +51,15 @@ TC-VIS-004 (checkout payment step with the credit card fields) were added to
 region instead of the full page, so headers, notifications and chat widgets stay
 out of the image and no masks are needed. Baselines were generated in the pinned
 CI Playwright image against a fresh local SUT and passed two repeated runs.
+
+RM-05 result: new unit tests pin every validation branch in
+[`history.ts`](../src/reporting/history.ts) and the edge cases of
+[`openapi-contract.ts`](../src/api/openapi-contract.ts): `load()`, the version,
+operation listing, `int32` handling, JSON pointer escaping and incomplete
+operations. A full local Stryker run scored 80.22% (446 of 556 mutants killed),
+up from 70.14%. The break threshold is now 70%. Most remaining survivors are in
+[`quality.ts`](../src/reporting/quality.ts) or are equivalent mutants, such as
+the validator cache or OpenAPI formats that Ajv treats as annotations.
 
 ## Phase 3: long-term
 
