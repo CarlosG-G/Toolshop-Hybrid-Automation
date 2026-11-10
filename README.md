@@ -215,10 +215,11 @@ designed cases. Project names identify the browser when Playwright reports it.
   gates use their lowest observed score. All samples and their JSON/HTML reports
   are retained. This follows Lighthouse's guidance on
   [score variability](https://github.com/GoogleChrome/lighthouse/blob/main/docs/variability.md).
-- ZAP baseline findings require triage; they are not a penetration test. k6 and
-  Lighthouse numbers describe the CI SUT, which uses Angular's development server
-  (`ng serve`), not production capacity or real-user experience. Missing or failed
-  reports are displayed explicitly.
+- ZAP baseline findings require triage; they are not a penetration test. The CI
+  SUT serves Angular's optimized production configuration against its disposable
+  local API. k6 and Lighthouse numbers still describe this CI environment, not
+  production capacity or real-user experience. Missing or failed reports are
+  displayed explicitly.
 - GitHub Actions are pinned by commit SHA. CI checks production dependencies
   with `npm audit --omit=dev --audit-level=high` and produces a CycloneDX SBOM.
   The full development audit currently reports a moderate

@@ -21,7 +21,17 @@ services:
     image: testsmith/practice-software-testing-${SPRINT:-sprint5}-ui
     ports:
       - "4200:4200"
-    command: bash -c "ng serve --host 0.0.0.0 --port 4200"
+    command:
+      - bash
+      - -ec
+      - |
+        if grep -Fq "apiUrl: 'https://api.practicesoftwaretesting.com'" src/environments/environment.prod.ts; then
+          sed -i 's|https://api.practicesoftwaretesting.com|http://localhost:8091|' src/environments/environment.prod.ts
+        elif ! grep -Fq "apiUrl: 'http://localhost:8091'" src/environments/environment.prod.ts; then
+          echo "Unexpected Toolshop API URL in src/environments/environment.prod.ts." >&2
+          exit 1
+        fi
+        exec ng serve --configuration production --host 0.0.0.0 --port 4200
 
   web:
     image: nginx:1.27-alpine
