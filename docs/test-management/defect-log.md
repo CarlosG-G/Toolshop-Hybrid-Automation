@@ -1,19 +1,20 @@
 # Defect log
 
 Defects found by the automated suites against the self-hosted Toolshop (sprint 5).
-Severity and priority follow the ISTQB glossary; each defect is linked to the test case that detects it.
+Severity and priority follow the ISTQB glossary; each defect is linked to the test case that detects it
+and tracked as a GitHub issue labelled `defect`.
 Known SUT defects use `test.fail()` only after checking the observed response or
 violation. A changed signature or unrelated earlier error fails normally and
 requires triage. DEF-003 is a separate, informational public-environment finding.
 
-| ID      | Title                                                | Severity | Priority | Detected by | Status                 |
-| ------- | ---------------------------------------------------- | -------- | -------- | ----------- | ---------------------- |
-| DEF-001 | Registration accepts customers older than 75 years   | Major    | Medium   | TC-API-025  | Open                   |
-| DEF-002 | Payment check accepts undocumented payment methods   | Minor    | Low      | TC-API-042  | Open                   |
-| DEF-003 | Public stable API returns 500 for an unknown product | Minor    | Low      | TC-API-003  | Open (public env only) |
-| DEF-004 | Registration API accepts a malformed email           | Major    | High     | TC-API-062  | Open                   |
-| DEF-005 | Icon-only buttons without an accessible name         | Major    | Medium   | TC-A11Y-002 | Open                   |
-| DEF-006 | Registration API does not require date of birth      | Minor    | Medium   | TC-API-067  | Open                   |
+| ID      | Issue                                                                    | Title                                                | Severity | Priority | Detected by | Status                 |
+| ------- | ------------------------------------------------------------------------ | ---------------------------------------------------- | -------- | -------- | ----------- | ---------------------- |
+| DEF-001 | [#10](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/10) | Registration accepts customers older than 75 years   | Major    | Medium   | TC-API-025  | Open                   |
+| DEF-002 | [#11](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/11) | Payment check accepts undocumented payment methods   | Minor    | Low      | TC-API-042  | Open                   |
+| DEF-003 | [#12](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/12) | Public stable API returns 500 for an unknown product | Minor    | Low      | TC-API-003  | Open (public env only) |
+| DEF-004 | [#13](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/13) | Registration API accepts a malformed email           | Major    | High     | TC-API-062  | Open                   |
+| DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name         | Major    | Medium   | TC-A11Y-002 | Open                   |
+| DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth      | Minor    | Medium   | TC-API-067  | Open                   |
 
 ## DEF-001 — Registration accepts customers older than 75 years
 

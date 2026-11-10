@@ -61,6 +61,20 @@ test("defects retain severity and test links; missing links fail explicitly", ()
     collectDefectDetails("| DEF-001 | Missing field | Major | High | none | Open |"),
   ).toThrow("does not reference a test case");
 });
+
+test("an optional issue column links each defect to its GitHub issue", () => {
+  const [defect] = collectDefectDetails(
+    "| DEF-004 | [#13](https://github.com/o/r/issues/13) | Bad email | Major | High | TC-API-062 | Open |",
+  );
+
+  expect(defect).toMatchObject({
+    id: "DEF-004",
+    title: "Bad email",
+    tests: ["TC-API-062"],
+    status: "Open",
+    issue: "https://github.com/o/r/issues/13",
+  });
+});
 test("traceability collects scenario outline IDs from Gherkin features", () => {
   const directory = mkdtempSync(join(tmpdir(), "toolshop-traceability-"));
   const feature = join(directory, "checkout.feature");

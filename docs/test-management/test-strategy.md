@@ -1,6 +1,8 @@
 # Test strategy and master test plan
 
 Aligned with ISTQB Foundation Level (CTFL v4.0) and ISO/IEC/IEEE 29119 terminology.
+The release-level [test plan](test-plan.md) and the v1.0 [test completion report](test-completion-report.md)
+refine this master plan for one test cycle.
 
 ## 1. Scope and objectives
 
@@ -56,7 +58,8 @@ not have assigned product owners.
 
 ## 6. Defect management
 
-Defects are recorded in the [defect log](defect-log.md) with severity, priority, technique and detecting test.
+Defects are recorded in the [defect log](defect-log.md) with severity, priority, technique and detecting test,
+and each one is tracked as a GitHub issue labelled `defect` using the defect-report issue form.
 For known SUT defects, the expected observed response or violation is asserted
 before `test.fail()` is set. A changed signature or an unrelated earlier error
 therefore fails normally and requires triage.

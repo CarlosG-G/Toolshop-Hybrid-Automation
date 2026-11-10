@@ -8,6 +8,12 @@
   defect-report and test-improvement issue forms.
 - Build provenance attestation for release SBOMs.
 - Dashboard previews and a reviewer quick tour in the README.
+- ISO/IEC/IEEE 29119-3 level test plan and v1.0 test completion report.
+- GitHub issues for the six recorded defects, linked from the defect log.
+
+### Changed
+
+- Branch protection on `main`: pull requests, linear history and required checks.
 
 ## 1.0.0
 

@@ -38,6 +38,7 @@ export interface Defect {
   priority: string;
   tests: string[];
   status: string;
+  issue?: string;
 }
 
 export interface RequirementDetail {
@@ -126,7 +127,8 @@ export function isTraceabilityData(value: unknown): value is TraceabilityData {
         typeof item.severity === "string" &&
         typeof item.priority === "string" &&
         isStringList(item.tests) &&
-        typeof item.status === "string",
+        typeof item.status === "string" &&
+        (item.issue === undefined || typeof item.issue === "string"),
     )
   );
 }

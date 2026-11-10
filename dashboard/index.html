@@ -438,7 +438,7 @@
             const executed = item.executedTests.length;
             const progress = el("div", { class: "progress" }, distributionBar({ passed: executed, skipped: designed - executed }), `${executed}/${designed}`);
             return [
-              el("div", {}, el("strong", {}, item.id), item.title ? el("span", { class: "sub" }, item.title) : null),
+              el("div", {}, item.issue && /^https:\/\/github\.com\//.test(item.issue) ? el("a", { href: item.issue, target: "_blank", rel: "noopener" }, el("strong", {}, item.id)) : el("strong", {}, item.id), item.title ? el("span", { class: "sub" }, item.title) : null),
               pill(item.risk), designed, progress,
               item.defects.length ? el("div", {}, ...item.defects.map((id) => el("span", { class: "tag" }, id))) : "—",
             ];
@@ -446,7 +446,7 @@
           "No requirements reported.", [2]);
         renderTable("#defects", ["Defect", "Severity", "Status", "Linked tests"],
           management.openDefects.map((item) => [
-            el("div", {}, el("strong", {}, item.id), item.title ? el("span", { class: "sub" }, item.title) : null),
+            el("div", {}, item.issue && /^https:\/\/github\.com\//.test(item.issue) ? el("a", { href: item.issue, target: "_blank", rel: "noopener" }, el("strong", {}, item.id)) : el("strong", {}, item.id), item.title ? el("span", { class: "sub" }, item.title) : null),
             pill(item.severity), item.status,
             el("div", {}, ...item.tests.map((id) => el("span", { class: "tag" }, id))),
           ]),
