@@ -4,6 +4,7 @@
 [![Nightly quality](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml)
 [![CodeQL](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml)
 [![Nightly comparison](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/CarlosG-G/Toolshop-Hybrid-Automation/badge)](https://scorecard.dev/viewer/?uri=github.com/CarlosG-G/Toolshop-Hybrid-Automation)
 
 **A risk-based test automation portfolio:** Playwright, Vibium and BDD against
@@ -284,3 +285,10 @@ For manual Vibium exploration, follow [the catalog charter](charters/catalog.md)
 or start its MCP server with `npx vibium mcp`. To run the public cross-browser
 checks locally, install Firefox and WebKit with
 `npx playwright install firefox webkit`, then use `npm run test:cross-browser`.
+
+## Contributing, security and license
+
+- [Contributing guide](CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md): report vulnerabilities privately
+- Released under the [MIT License](LICENSE). Toolshop is a third-party SUT by
+  [Testsmith](https://github.com/testsmith-io/practice-software-testing).

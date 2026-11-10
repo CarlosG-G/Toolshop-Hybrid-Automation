@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/security/advisories/new
+    about: Report vulnerabilities privately; see SECURITY.md.
+  - name: Live quality dashboard
+    url: https://carlosg-g.github.io/Toolshop-Hybrid-Automation/
+    about: Latest executed evidence and test-cycle summary.
