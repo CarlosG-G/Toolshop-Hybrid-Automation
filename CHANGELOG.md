@@ -15,6 +15,9 @@
   checkout payment step (roadmap item RM-07).
 - TC-VIS-002 to TC-VIS-004 add Linux SUT visual baselines for registration, product detail
   and the checkout payment step (roadmap item RM-06).
+- Unit tests for history parsing and the OpenAPI contract validator raise the mutation score
+  from 70.14 % to 80.22 %; the Stryker break threshold moves from 65 % to 70 % (roadmap item
+  RM-05).
 
 ## 1.1.0
 
