@@ -195,6 +195,9 @@ by test type, open defects, flaky cases, missing reports and recent runs:
 - `nightly.yml` compares stable and intentionally buggy public targets and runs
   the browser matrix. `nightly-quality.yml` runs load, ZAP and Lighthouse only
   against a disposable SUT.
+- Linux cross-browser suites and SUT visual checks use a digest-pinned
+  Playwright image with browsers and system libraries preinstalled. Regular
+  Chromium jobs use the hosted runner's browser libraries.
 - k6 load uses up to 50 VUs with p95 below 1.5 s, error rate below 1% and checks
   above 99%. Lighthouse desktop minimum scores are 0.60 performance, 0.80
   accessibility and 0.80 best practices for home and login.

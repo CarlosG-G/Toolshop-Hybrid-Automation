@@ -41,6 +41,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.65.0-noble@sha256:bc4fbb329a25287ed23e9216c97063646abdd1bf2da669a9895fa3e2078b2302
+
 concurrency:
   group: toolshop-${{ github.workflow }}-${{ github.ref }}-${{ inputs.target || 'stable' }}
   cancel-in-progress: false
@@ -71,13 +74,22 @@ jobs:
         run: |
           npm audit --omit=dev --audit-level=high
           npm sbom --omit=dev --sbom-format=cyclonedx > reports/sbom.cdx.json
-      - run: npx playwright install --with-deps chromium
-      - if: inputs.browser_matrix
-        run: npx playwright install --with-deps firefox webkit
+      - if: ${{ !inputs.browser_matrix }}
+        run: npx playwright install chromium
       - name: Run hermetic gate
         env:
           PLAYWRIGHT_JSON_REPORT: reports/hermetic.json
-        run: npm run test:hermetic -- --workers=2
+        run: |
+          if [ "$TOOLSHOP_BROWSER_MATRIX" = "1" ]; then
+            docker run --rm --init --network host \
+              -v "$PWD:/work" -w /work \
+              -e CI=true -e TOOLSHOP_TARGET="$TOOLSHOP_TARGET" \
+              -e TOOLSHOP_BROWSER_MATRIX="$TOOLSHOP_BROWSER_MATRIX" \
+              -e PLAYWRIGHT_JSON_REPORT="$PLAYWRIGHT_JSON_REPORT" \
+              "$PLAYWRIGHT_IMAGE" npm run test:hermetic -- --workers=2
+          else
+            npm run test:hermetic -- --workers=2
+          fi
       - name: Upload hermetic reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -181,11 +193,8 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Install Chromium for browser suites
-        if: contains(fromJSON('["ui-1","ui-2","nonfunctional","bdd"]'), matrix.suite)
-        run: npx playwright install --with-deps chromium
-      - name: Install additional browsers
-        if: inputs.browser_matrix && contains(fromJSON('["ui-1","ui-2"]'), matrix.suite)
-        run: npx playwright install --with-deps firefox webkit
+        if: contains(fromJSON('["nonfunctional","bdd"]'), matrix.suite) || (!inputs.browser_matrix && contains(fromJSON('["ui-1","ui-2"]'), matrix.suite))
+        run: npx playwright install chromium
       - name: Determine image-cache epoch
         id: cache_date
         run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -208,15 +217,27 @@ jobs:
         id: suite
         shell: bash
         run: |
+          run_ui_suite() {
+            if [ "$TOOLSHOP_BROWSER_MATRIX" = "1" ]; then
+              docker run --rm --init --network host \
+                -v "$PWD:/work" -w /work \
+                -e CI=true -e TOOLSHOP_TARGET=local -e TOOLSHOP_LIVE=1 \
+                -e TOOLSHOP_BROWSER_MATRIX="$TOOLSHOP_BROWSER_MATRIX" \
+                -e PLAYWRIGHT_JSON_REPORT="$PLAYWRIGHT_JSON_REPORT" \
+                "$PLAYWRIGHT_IMAGE" node scripts/run-target.mjs local tests/e2e --fully-parallel "$@"
+            else
+              node scripts/run-target.mjs local tests/e2e --fully-parallel "$@"
+            fi
+          }
           case "${{ matrix.suite }}" in
             api)
               node scripts/run-target.mjs local tests/api tests/contract tests/security --workers=2
               ;;
             ui-1)
-              node scripts/run-target.mjs local tests/e2e --fully-parallel --shard=1/2
+              run_ui_suite --shard=1/2
               ;;
             ui-2)
-              node scripts/run-target.mjs local tests/e2e --fully-parallel --shard=2/2
+              run_ui_suite --shard=2/2
               ;;
             nonfunctional)
               node scripts/run-target.mjs local tests/nonfunctional
@@ -232,7 +253,7 @@ jobs:
                 -v "$PWD:/work" -w /work \
                 -e CI=true -e TOOLSHOP_TARGET=local -e TOOLSHOP_LIVE=1 \
                 -e PLAYWRIGHT_JSON_REPORT="$PLAYWRIGHT_JSON_REPORT" \
-                mcr.microsoft.com/playwright:v1.65.0-noble@sha256:bc4fbb329a25287ed23e9216c97063646abdd1bf2da669a9895fa3e2078b2302 \
+                "$PLAYWRIGHT_IMAGE" \
                 node node_modules/@playwright/test/cli.js test --project=visual-sut --workers=1 "${extra[@]}"
               ;;
             vibium)
@@ -320,7 +341,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - name: Check public API health
         id: api_health
         continue-on-error: true
