@@ -13,7 +13,7 @@ export const gates = {
   writableSut(): void {
     test.skip(
       process.env.TOOLSHOP_LIVE !== "1" || !config.allowsWrites,
-      "Requires the disposable self-hosted SUT (TOOLSHOP_TARGET=local).",
+      "Requires TOOLSHOP_TARGET=local and loopback-only site and API URLs.",
     );
   },
   /** Suite is read-only but needs a live UI target. */

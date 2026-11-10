@@ -33,7 +33,12 @@
     "sut:up": "node scripts/sut.mjs up",
     "sut:down": "node scripts/sut.mjs down",
     "sut:reset": "node scripts/sut.mjs reset",
-    "test:local": "node scripts/run-target.mjs local"
+    "test:local": "node scripts/run-target.mjs local",
+    "bdd:generate": "bddgen",
+    "test:bdd": "bddgen && playwright test --project=bdd",
+    "report:exit": "tsx scripts/build-exit-report.ts",
+    "lighthouse:collect": "node scripts/run-lighthouse.mjs",
+    "lighthouse:report": "tsx scripts/build-lighthouse-report.ts"
   },
   "dependencies": {
     "vibium": "26.8.21"
@@ -48,7 +53,9 @@
     "ajv-formats": "^3.0.1",
     "eslint-plugin-playwright": "^2.12.2",
     "husky": "^9.1.7",
+    "lighthouse": "13.6.0",
     "oxlint": "^1.93.0",
+    "playwright-bdd": "9.2.1",
     "prettier": "^3.9.10",
     "tsx": "4.23.15",
     "typescript": "7.0.2"

@@ -9,131 +9,53 @@ on:
       target:
         description: Toolshop environment to test
         type: choice
-        options:
-          - stable
-          - with-bugs
+        options: [stable, with-bugs]
         default: stable
       publish_report:
         description: Publish the dashboard to GitHub Pages
         type: boolean
         default: true
       browser_matrix:
-        description: Run Playwright UI suites in Chromium, Firefox, and WebKit
+        description: Run UI checks in Chromium, Firefox, and WebKit
+        type: boolean
+        default: false
+      update_visual_baselines:
+        description: Generate a reviewable Linux SUT baseline artifact
         type: boolean
         default: false
   workflow_call:
     inputs:
       target:
-        description: Toolshop environment to test
         type: string
-        required: false
         default: stable
       publish_report:
-        description: Publish the dashboard to GitHub Pages
         type: boolean
-        required: false
         default: false
       browser_matrix:
-        description: Run Playwright UI suites in Chromium, Firefox, and WebKit
         type: boolean
-        required: false
+        default: false
+      update_visual_baselines:
+        type: boolean
         default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: toolshop-${{ github.workflow }}-${{ github.ref }}
+  group: toolshop-${{ github.workflow }}-${{ github.ref }}-${{ inputs.target || 'stable' }}
   cancel-in-progress: false
 
 jobs:
-  hybrid:
-    name: Vibium and hybrid smoke
-    runs-on: windows-latest
-    continue-on-error: true
-    permissions:
-      contents: read
-    env:
-      TOOLSHOP_TARGET: ${{ inputs.target || 'stable' }}
-    outputs:
-      report_artifact: toolshop-${{ inputs.target || 'stable' }}-hybrid-reports-${{ github.run_attempt }}
-      hermetic_status: ${{ steps.hermetic_hybrid.outcome }}
-      site_health: ${{ steps.site_health.outcome }}
-      live_status: ${{ steps.live_vibium.outcome }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install chromium
-      - run: npx vibium install
-      - name: Run hermetic hybrid smoke
-        id: hermetic_hybrid
-        continue-on-error: true
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/hermetic-hybrid.json
-        run: npm run test:hybrid:hermetic
-      - name: Upload hermetic hybrid evidence
-        if: ${{ always() && steps.hermetic_hybrid.outcome != 'skipped' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: toolshop-${{ env.TOOLSHOP_TARGET }}-hermetic-hybrid-evidence-${{ github.run_attempt }}
-          path: |
-            playwright-report/
-            test-results/
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Check target UI health for Vibium
-        id: site_health
-        continue-on-error: true
-        run: npm run healthcheck:site
-      - name: Run live Vibium and hybrid smoke
-        id: live_vibium
-        if: steps.site_health.outcome == 'success'
-        continue-on-error: true
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/vibium.json
-        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/vibium tests/hybrid
-      - name: Upload live Vibium evidence
-        if: ${{ always() && steps.live_vibium.outcome != 'skipped' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: toolshop-${{ env.TOOLSHOP_TARGET }}-live-vibium-evidence-${{ github.run_attempt }}
-          path: |
-            playwright-report/
-            test-results/
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Record unavailable Vibium target
-        if: ${{ always() && steps.site_health.outcome != 'success' }}
-        run: '"Vibium live checks did not run because their UI health check did not pass." >> $env:GITHUB_STEP_SUMMARY'
-      - name: Upload hybrid reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: toolshop-${{ env.TOOLSHOP_TARGET }}-hybrid-reports-${{ github.run_attempt }}
-          path: |
-            reports/hermetic-hybrid.json
-            reports/vibium.json
-          if-no-files-found: warn
-          retention-days: 14
-
-  test:
-    needs: hybrid
-    if: ${{ always() && needs.hybrid.result != 'cancelled' }}
+  quality:
+    name: Static and hermetic gate
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    timeout-minutes: 15
     env:
       TOOLSHOP_TARGET: ${{ inputs.target || 'stable' }}
       TOOLSHOP_BROWSER_MATRIX: ${{ inputs.browser_matrix && '1' || '0' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -142,123 +64,437 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - name: Verify requirement traceability
-        run: npm run traceability
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: |
+          npm run traceability
+          git diff --exit-code -- docs/test-management/traceability-matrix.md
+      - name: Audit production dependencies and generate SBOM
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm sbom --omit=dev --sbom-format=cyclonedx > reports/sbom.cdx.json
       - run: npx playwright install --with-deps chromium
-      - name: Install additional Playwright browsers
-        if: inputs.browser_matrix
+      - if: inputs.browser_matrix
         run: npx playwright install --with-deps firefox webkit
-      - name: Download hybrid reports
-        if: ${{ always() && needs.hybrid.outputs.report_artifact != '' }}
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.hybrid.outputs.report_artifact }}
-          path: reports
       - name: Run hermetic gate
         env:
           PLAYWRIGHT_JSON_REPORT: reports/hermetic.json
-        run: npm run test:hermetic
-      - name: Start self-hosted Toolshop SUT
-        id: sut
-        continue-on-error: true
-        timeout-minutes: 12
-        run: npm run sut:up
-      - name: Run API and contract regression on self-hosted SUT
-        id: sut_api
-        if: steps.sut.outcome == 'success'
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/sut-api.json
-        run: node scripts/run-target.mjs local tests/api tests/contract tests/security
-      - name: Run E2E checkout journey on self-hosted SUT
-        id: sut_e2e
-        if: always() && steps.sut.outcome == 'success'
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/sut-e2e.json
-        run: node scripts/run-target.mjs local tests/e2e
-      - name: Run non-functional checks on self-hosted SUT
-        id: sut_nonfunctional
-        if: always() && steps.sut.outcome == 'success'
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/sut-nonfunctional.json
-        run: node scripts/run-target.mjs local tests/nonfunctional
-      - name: Dump SUT logs on failure
-        if: ${{ always() && steps.sut.outcome == 'failure' }}
-        run: docker compose -f docker/compose.yml logs --tail=200
-      - name: Stop self-hosted SUT
-        if: ${{ always() && steps.sut.outcome != 'skipped' }}
-        run: npm run sut:down
-      - name: Check public API health
-        id: api_health
-        continue-on-error: true
-        run: npm run healthcheck:api
-      - name: Check target UI health
-        id: site_health
-        continue-on-error: true
-        run: npm run healthcheck:site
-      - name: Run live API regression
-        id: live_api
-        # Public environments are shared and mutable: informative, never a merge gate.
-        continue-on-error: true
-        if: steps.api_health.outcome == 'success'
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/live-api.json
-        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/api
-      - name: Run live UI regression
-        id: live_ui
-        # Public environments are shared and mutable: informative, never a merge gate.
-        continue-on-error: true
-        if: steps.site_health.outcome == 'success'
-        env:
-          PLAYWRIGHT_JSON_REPORT: reports/live-ui.json
-        run: node scripts/run-target.mjs "${{ env.TOOLSHOP_TARGET }}" tests/e2e
-      - name: Record unavailable external target
-        if: steps.api_health.outcome != 'success' || steps.site_health.outcome != 'success'
-        run: |
-          echo "Some live suites were skipped because their API or UI health check failed. Hermetic gate still ran." >> "$GITHUB_STEP_SUMMARY"
-      - name: Build unified report
+        run: npm run test:hermetic -- --workers=2
+      - name: Upload hermetic reports
         if: always()
-        env:
-          TOOLSHOP_INFRA_STATUS: >-
-            sut=${{ steps.sut.outcome }}; sut_api=${{ steps.sut_api.outcome }};
-            sut_e2e=${{ steps.sut_e2e.outcome }}; sut_nonfunctional=${{ steps.sut_nonfunctional.outcome }};
-            live_api=${{ steps.live_api.outcome }}; live_ui=${{ steps.live_ui.outcome }};
-            api=${{ steps.api_health.outcome }}; site=${{ steps.site_health.outcome }};
-            vibium_job=${{ needs.hybrid.result }}; vibium_hermetic=${{ needs.hybrid.outputs.hermetic_status }};
-            vibium_site=${{ needs.hybrid.outputs.site_health }}; vibium_live=${{ needs.hybrid.outputs.live_status }}
-          TOOLSHOP_REPORT_FILES: >-
-            reports/hermetic.json;reports/hermetic-hybrid.json;local=reports/sut-api.json;
-            local=reports/sut-e2e.json;local=reports/sut-nonfunctional.json;
-            reports/live-api.json;reports/live-ui.json;reports/vibium.json
-        run: npm run report:build
-      - name: Build dashboard
-        if: always() && hashFiles('reports/unified-report.json') != ''
-        run: npm run dashboard:build
-      - name: Upload reports and Playwright evidence
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: toolshop-${{ env.TOOLSHOP_TARGET }}-reports
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-quality-json-${{ github.run_attempt }}
           path: |
-            reports/
+            reports/hermetic.json
+            reports/sbom.cdx.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload hermetic traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-quality-evidence-${{ github.run_attempt }}
+          path: |
             playwright-report/
             test-results/
           if-no-files-found: warn
           retention-days: 14
+
+  hybrid:
+    name: Vibium and hybrid smoke
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      TOOLSHOP_TARGET: ${{ inputs.target || 'stable' }}
+    outputs:
+      hermetic_status: ${{ steps.hermetic_hybrid.outcome }}
+      site_health: ${{ steps.site_health.outcome }}
+      live_status: ${{ steps.live_vibium.outcome }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npx vibium install
+      - name: Run hermetic hybrid smoke
+        id: hermetic_hybrid
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/hermetic-hybrid.json
+        run: npm run test:hybrid:hermetic
+      - name: Check public UI health
+        id: site_health
+        if: always()
+        continue-on-error: true
+        run: npm run healthcheck:site
+      - name: Run optional public Vibium smoke
+        id: live_vibium
+        if: always() && steps.site_health.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 3
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/vibium.json
+        run: node scripts/run-target.mjs "$env:TOOLSHOP_TARGET" tests/vibium/smoke.spec.ts tests/hybrid --retries=0
+      - name: Record optional public outcome
+        if: always() && (steps.site_health.outcome != 'success' || steps.live_vibium.outcome == 'failure')
+        run: '"Optional public Vibium: health=${{ steps.site_health.outcome }}, suite=${{ steps.live_vibium.outcome }}." >> $env:GITHUB_STEP_SUMMARY'
+      - name: Upload hybrid reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-hybrid-json-${{ github.run_attempt }}
+          path: |
+            reports/hermetic-hybrid.json
+            reports/vibium.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload hybrid traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-hybrid-evidence-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+  sut:
+    name: SUT / ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [api, ui-1, ui-2, nonfunctional, bdd, visual, vibium]
+    env:
+      TOOLSHOP_TARGET: local
+      TOOLSHOP_BROWSER_MATRIX: ${{ inputs.browser_matrix && '1' || '0' }}
+      PLAYWRIGHT_JSON_REPORT: reports/sut-${{ matrix.suite }}.json
+      UPDATE_VISUAL: ${{ inputs.update_visual_baselines && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium for browser suites
+        if: contains(fromJSON('["ui-1","ui-2","nonfunctional","bdd"]'), matrix.suite)
+        run: npx playwright install --with-deps chromium
+      - name: Install additional browsers
+        if: inputs.browser_matrix && contains(fromJSON('["ui-1","ui-2"]'), matrix.suite)
+        run: npx playwright install --with-deps firefox webkit
+      - name: Determine image-cache epoch
+        id: cache_date
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+      - name: Restore SUT image cache
+        id: image_cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/toolshop-images.tar
+          key: sut-images-v1-${{ runner.os }}-${{ steps.cache_date.outputs.date }}-${{ hashFiles('docker/compose.yml') }}
+      - name: Load cached images
+        if: steps.image_cache.outputs.cache-hit == 'true'
+        run: docker image load --input "$RUNNER_TEMP/toolshop-images.tar"
+      - name: Pull SUT images
+        if: steps.image_cache.outputs.cache-hit != 'true'
+        run: docker compose -f docker/compose.yml pull --quiet
+      - name: Start isolated SUT
+        id: sut
+        run: npm run sut:up
+      - name: Run ${{ matrix.suite }} suite
+        id: suite
+        shell: bash
+        run: |
+          case "${{ matrix.suite }}" in
+            api)
+              node scripts/run-target.mjs local tests/api tests/contract tests/security --workers=2
+              ;;
+            ui-1)
+              node scripts/run-target.mjs local tests/e2e --fully-parallel --shard=1/2
+              ;;
+            ui-2)
+              node scripts/run-target.mjs local tests/e2e --fully-parallel --shard=2/2
+              ;;
+            nonfunctional)
+              node scripts/run-target.mjs local tests/nonfunctional
+              ;;
+            bdd)
+              npm run bdd:generate
+              node scripts/run-target.mjs local --project=bdd
+              ;;
+            visual)
+              extra=()
+              if [ "$UPDATE_VISUAL" = "true" ]; then extra+=(--update-snapshots); fi
+              docker run --rm --init --network host \
+                -v "$PWD:/work" -w /work \
+                -e CI=true -e TOOLSHOP_TARGET=local -e TOOLSHOP_LIVE=1 \
+                -e PLAYWRIGHT_JSON_REPORT="$PLAYWRIGHT_JSON_REPORT" \
+                mcr.microsoft.com/playwright:v1.65.0-noble@sha256:bc4fbb329a25287ed23e9216c97063646abdd1bf2da669a9895fa3e2078b2302 \
+                node node_modules/@playwright/test/cli.js test --project=visual-sut --workers=1 "${extra[@]}"
+              ;;
+            vibium)
+              npx vibium install
+              node scripts/run-target.mjs local tests/vibium/local.spec.ts
+              ;;
+            *)
+              echo "::error::Unknown SUT suite."
+              exit 2
+              ;;
+          esac
+      - name: Save SUT images for later runs
+        if: always() && steps.image_cache.outputs.cache-hit != 'true' && steps.sut.outcome == 'success'
+        run: |
+          mapfile -t images < <(docker compose -f docker/compose.yml config --images | sort -u)
+          docker image save --output "$RUNNER_TEMP/toolshop-images.tar" "${images[@]}"
+      - name: Dump SUT logs on failure
+        if: failure()
+        run: docker compose -f docker/compose.yml logs --tail=150
+      - name: Record suite outcomes
+        if: always()
+        env:
+          SUT_STATUS: ${{ steps.sut.outcome }}
+          SUITE_STATUS: ${{ steps.suite.outcome }}
+          SUITE_NAME: ${{ matrix.suite }}
+        run: |
+          mkdir -p reports
+          node -e "const fs=require('node:fs'); fs.writeFileSync('reports/status-sut-'+process.env.SUITE_NAME+'.json', JSON.stringify({sut:process.env.SUT_STATUS,suite:process.env.SUITE_STATUS}));"
+      - name: Upload suite report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ inputs.target || 'stable' }}-sut-${{ matrix.suite }}-json-${{ github.run_attempt }}
+          path: |
+            reports/sut-${{ matrix.suite }}.json
+            reports/status-sut-${{ matrix.suite }}.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload suite traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ inputs.target || 'stable' }}-sut-${{ matrix.suite }}-evidence-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload generated Linux baseline
+        if: always() && matrix.suite == 'visual' && inputs.update_visual_baselines
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-linux-sut-baseline-${{ github.run_attempt }}
+          path: tests/visual/sut.spec.ts-snapshots/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Stop isolated SUT
+        if: always() && steps.sut.outcome != 'skipped'
+        run: npm run sut:down
+
+  live:
+    name: Optional public diagnostics
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TOOLSHOP_TARGET: ${{ inputs.target || 'stable' }}
+    outputs:
+      api_health: ${{ steps.api_health.outcome }}
+      site_health: ${{ steps.site_health.outcome }}
+      api: ${{ steps.api.outcome }}
+      ui: ${{ steps.ui.outcome }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Check public API health
+        id: api_health
+        continue-on-error: true
+        run: npm run healthcheck:api
+      - name: Check public UI health
+        id: site_health
+        continue-on-error: true
+        run: npm run healthcheck:site
+      - name: Run optional public API suite
+        id: api
+        if: steps.api_health.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 3
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/live-api.json
+        run: node scripts/run-target.mjs "$TOOLSHOP_TARGET" tests/api --timeout=10000 --retries=0
+      - name: Run optional public UI suite
+        id: ui
+        if: steps.site_health.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 3
+        env:
+          PLAYWRIGHT_JSON_REPORT: reports/live-ui.json
+        run: node scripts/run-target.mjs "$TOOLSHOP_TARGET" tests/e2e --retries=0
+      - name: Record optional public outcomes
+        if: always()
+        run: |
+          echo "Optional public diagnostics: API health=${{ steps.api_health.outcome }}, API suite=${{ steps.api.outcome }}, UI health=${{ steps.site_health.outcome }}, UI suite=${{ steps.ui.outcome }}. These checks do not gate the disposable SUT." >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload public reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-live-json-${{ github.run_attempt }}
+          path: |
+            reports/live-api.json
+            reports/live-ui.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload public traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-live-evidence-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+  report:
+    name: Aggregate evidence
+    if: always() && !cancelled()
+    needs: [quality, sut, hybrid, live]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    env:
+      TOOLSHOP_TARGET: ${{ inputs.target || 'stable' }}
+      GH_TOKEN: ${{ github.token }}
+    outputs:
+      pages_status: ${{ steps.pages_upload.outcome }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Download suite reports
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: toolshop-${{ env.TOOLSHOP_TARGET }}-*-json-${{ github.run_attempt }}
+          path: reports
+          merge-multiple: true
+      - name: Load previously published history
+        run: |
+          history_url="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/history.json"
+          if curl --fail --silent --show-error --location --max-time 10 "$history_url" --output "$RUNNER_TEMP/toolshop-history.json"; then
+            cp "$RUNNER_TEMP/toolshop-history.json" reports/previous-history.json
+          else
+            echo "::notice::No previously published history was available."
+          fi
+      - name: Download latest completed nightly evidence
+        run: |
+          if gh run list --repo "$GITHUB_REPOSITORY" --workflow nightly-quality.yml --branch main --status completed --limit 1 --json databaseId,conclusion,url > "$RUNNER_TEMP/nightly-runs.json"; then
+            result=0
+            node -e "const fs=require('node:fs'); const runs=JSON.parse(fs.readFileSync(process.argv[1])); if(!Array.isArray(runs)) throw new Error('Invalid run list'); if(!runs.length) process.exit(2); const r=runs[0]; fs.writeFileSync('reports/nightly-run.json', JSON.stringify({runId:String(r.databaseId),conclusion:r.conclusion,url:r.url}));" "$RUNNER_TEMP/nightly-runs.json" || result=$?
+            if [ "$result" -eq 0 ]; then
+              run_id=$(node -p "require('./reports/nightly-run.json').runId")
+              if ! gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --name nightly-quality-reports --dir reports/nightly; then
+                echo "::warning::Nightly run exists but its evidence could not be downloaded."
+              fi
+            elif [ "$result" -eq 2 ]; then
+              echo "::notice::No completed nightly run was found."
+            else
+              exit "$result"
+            fi
+          else
+            echo "::warning::Unable to query nightly runs; dashboard will mark the evidence unavailable."
+          fi
+      - name: Build traceability and unified report
+        env:
+          TOOLSHOP_INFRA_STATUS: "quality=${{ needs.quality.result }}; sut=${{ needs.sut.result }}; hybrid=${{ needs.hybrid.result }}; vibium_hermetic=${{ needs.hybrid.outputs.hermetic_status }}; vibium_site=${{ needs.hybrid.outputs.site_health }}; vibium_live=${{ needs.hybrid.outputs.live_status }}; live_api_health=${{ needs.live.outputs.api_health }}; live_api=${{ needs.live.outputs.api }}; live_ui_health=${{ needs.live.outputs.site_health }}; live_ui=${{ needs.live.outputs.ui }}"
+          TOOLSHOP_REPORT_FILES: "reports/hermetic.json;reports/hermetic-hybrid.json;local=reports/sut-api.json;local=reports/sut-ui-1.json;local=reports/sut-ui-2.json;local=reports/sut-nonfunctional.json;local=reports/sut-bdd.json;local=reports/sut-visual.json;local=reports/sut-vibium.json;reports/live-api.json;reports/live-ui.json;reports/vibium.json"
+        run: |
+          npm run traceability
+          npm run report:build
+          npm run report:exit
+          npm run dashboard:build
+      - name: Upload combined report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolshop-${{ env.TOOLSHOP_TARGET }}-reports
+          path: |
+            reports/
+            site/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Configure GitHub Pages
-        if: ${{ always() && (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != '' }}
-        uses: actions/configure-pages@v5
+        if: (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != ''
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload Pages artifact
-        if: ${{ always() && (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != '' }}
-        uses: actions/upload-pages-artifact@v3
+        id: pages_upload
+        if: (github.event_name == 'push' || inputs.publish_report) && hashFiles('site/index.html') != ''
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: site
 
-  deploy:
-    if: ${{ always() && needs.test.result != 'cancelled' && (github.event_name == 'push' || inputs.publish_report) }}
-    needs: test
+  comment:
+    name: Comment on pull request
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.report.result == 'success'
+    needs: [quality, sut, hybrid, report]
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: toolshop-${{ inputs.target || 'stable' }}-reports
+          path: evidence
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          SUT_RESULT: ${{ needs.sut.result }}
+          HYBRID_RESULT: ${{ needs.hybrid.result }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const report = JSON.parse(fs.readFileSync('evidence/reports/exit-report.json', 'utf8'));
+            const marker = '<!-- toolshop-automation-report -->';
+            const rate = report.passRatePercent === null ? 'not available' : `${report.passRatePercent}%`;
+            const body = [
+              marker,
+              '## Toolshop test evidence',
+              `Required jobs: static/hermetic **${process.env.QUALITY_RESULT}**, SUT **${process.env.SUT_RESULT}**, hybrid **${process.env.HYBRID_RESULT}**.`,
+              `Executed **${report.executed}**; passed **${report.totals.passed}**; detected defects **${report.totals.detected}**; failed **${report.totals.failed}**; flaky **${report.totals.flaky}**; skipped **${report.totals.skipped}**. Pass rate: **${rate}**.`,
+              `Requirements executed: **${report.executionCoverage.covered}/${report.executionCoverage.total}**; recorded open defects: **${report.openDefects.length}**; missing reports: **${report.missingReports.length}**.`,
+              'Public-target checks are advisory; missing evidence is not counted as a pass.',
+              `[Open run and trace artifacts](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+            ].join('\n\n');
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { ...context.repo, issue_number });
+            const previous = comments.find((item) => item.user.type === 'Bot' && item.body && item.body.includes(marker));
+            if (previous) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: previous.id, body });
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number, body });
+            }
+
+  deploy:
+    name: Publish dashboard
+    if: always() && needs.report.outputs.pages_status == 'success' && (github.event_name == 'push' || inputs.publish_report)
+    needs: report
+    runs-on: ubuntu-latest
+    concurrency:
+      group: toolshop-pages
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write
@@ -268,4 +504,4 @@ jobs:
     steps:
       - name: Deploy report dashboard
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

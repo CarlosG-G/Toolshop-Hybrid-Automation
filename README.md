@@ -73,7 +73,8 @@ operations without an explicit disposable-data and cleanup strategy.
 
 Set `TOOLSHOP_SITE_URL` and `TOOLSHOP_API_URL` to use another compatible
 environment for both health checks and tests. Invalid target names fail
-explicitly.
+explicitly. Write tests require the `local` target **and** loopback URLs for
+both the UI and API, including when either URL is overridden.
 
 ## Test suites
 

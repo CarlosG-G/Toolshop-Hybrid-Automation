@@ -1,9 +1,11 @@
 node_modules/
+.features-gen/
 playwright-report/
 test-results/
 coverage/
 reports/*.json
 reports/*.md
+reports/*.html
 dashboard/data.json
 site/
 .env

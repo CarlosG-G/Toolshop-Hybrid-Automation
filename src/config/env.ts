@@ -29,14 +29,31 @@ function parseTarget(value: string | undefined): ToolshopTarget {
   );
 }
 
+export function allowsLocalWrites(
+  target: ToolshopTarget,
+  siteUrl: string,
+  apiUrl: string,
+): boolean {
+  if (target !== "local") return false;
+  return [siteUrl, apiUrl].every((value) => {
+    const url = new URL(value);
+    return (
+      ["http:", "https:"].includes(url.protocol) &&
+      ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+    );
+  });
+}
+
 const target = parseTarget(process.env.TOOLSHOP_TARGET);
 const defaults = targets[target];
+const siteUrl = process.env.TOOLSHOP_SITE_URL ?? defaults.siteUrl;
+const apiUrl = process.env.TOOLSHOP_API_URL ?? defaults.apiUrl;
 
 export const config = {
   target,
-  siteUrl: process.env.TOOLSHOP_SITE_URL ?? defaults.siteUrl,
-  apiUrl: process.env.TOOLSHOP_API_URL ?? defaults.apiUrl,
+  siteUrl,
+  apiUrl,
   isLive: process.env.TOOLSHOP_MODE !== "mock",
-  /** Write operations (register, checkout, admin) are only allowed against the disposable local SUT. */
-  allowsWrites: target === "local",
+  /** Write operations are limited to the disposable SUT on loopback addresses. */
+  allowsWrites: allowsLocalWrites(target, siteUrl, apiUrl),
 } as const;

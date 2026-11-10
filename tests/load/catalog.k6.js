@@ -2,13 +2,24 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 const API = __ENV.API_URL || "http://127.0.0.1:8091";
+const profile = __ENV.LOAD_PROFILE || "load";
+if (!/^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?\/?$/i.test(API)) {
+  throw new Error("Load tests are restricted to the disposable loopback SUT.");
+}
+if (!["smoke", "load"].includes(profile)) {
+  throw new Error(`Unknown load profile: ${profile}`);
+}
 
 export const options = {
-  stages: [
-    { duration: "15s", target: 20 },
-    { duration: "30s", target: 50 },
-    { duration: "10s", target: 0 },
-  ],
+  ...(profile === "smoke"
+    ? { vus: 1, iterations: 1 }
+    : {
+        stages: [
+          { duration: "15s", target: 20 },
+          { duration: "30s", target: 50 },
+          { duration: "10s", target: 0 },
+        ],
+      }),
   thresholds: {
     http_req_failed: ["rate<0.01"],
     http_req_duration: ["p(95)<1500"],

@@ -1,0 +1,2 @@
+# Passive scan of the disposable SUT. Keep security-header findings visible.
+10109	INFO	(Modern web application fingerprint is informational, not a vulnerability.)

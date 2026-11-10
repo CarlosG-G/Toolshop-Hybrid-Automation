@@ -2,7 +2,7 @@ name: Nightly load and security scan
 
 on:
   schedule:
-    - cron: "37 3 * * *"
+    - cron: "17 1 * * *"
   workflow_dispatch:
 
 permissions:
@@ -13,27 +13,62 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - name: Start self-hosted Toolshop SUT
+        id: sut
         run: npm run sut:up
-      - uses: grafana/setup-k6-action@v1
+      - uses: grafana/setup-k6-action@c47136d33d365efbeb9ae7266908b5dcf98cdece # v1
+      - name: k6 smoke test
+        id: smoke
+        run: k6 run --env LOAD_PROFILE=smoke --summary-export reports/k6-smoke.json tests/load/catalog.k6.js
       - name: k6 load test (thresholds gate the job)
+        id: load
+        if: steps.smoke.outcome == 'success'
         run: k6 run --summary-export reports/k6-summary.json tests/load/catalog.k6.js
       - name: OWASP ZAP baseline scan (report only)
-        continue-on-error: true
+        id: zap
+        if: always() && steps.sut.outcome == 'success'
         run: |
-          mkdir -p reports && chmod 777 reports
+          mkdir -p reports
+          cp tests/security/zap-rules.tsv reports/zap-rules.tsv
+          chmod 777 reports
+          set +e
           docker run --rm --network host -v "$PWD/reports:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://127.0.0.1:4200 -I -r zap-report.html -J zap-report.json
+            -t http://127.0.0.1:4200 -c zap-rules.tsv -I -r zap-report.html -J zap-report.json
+          result=$?
+          set -e
+          if [ "$result" -gt 2 ] || [ ! -s reports/zap-report.json ]; then
+            echo "::error::ZAP did not produce a usable report (exit $result)."
+            exit 1
+          fi
+          echo "ZAP findings are reported for triage; scan exit code: $result."
+      - name: Lighthouse desktop budgets
+        id: lighthouse
+        if: always() && steps.sut.outcome == 'success'
+        run: |
+          npm run lighthouse:collect
+          npm run lighthouse:report
+      - name: Record nightly stage outcomes
+        if: always()
+        env:
+          SUT_STATUS: ${{ steps.sut.outcome }}
+          SMOKE_STATUS: ${{ steps.smoke.outcome }}
+          LOAD_STATUS: ${{ steps.load.outcome }}
+          ZAP_STATUS: ${{ steps.zap.outcome }}
+          LIGHTHOUSE_STATUS: ${{ steps.lighthouse.outcome }}
+        run: |
+          mkdir -p reports
+          node -e "const fs=require('node:fs'); fs.writeFileSync('reports/nightly-status.json', JSON.stringify({sut:process.env.SUT_STATUS,smoke:process.env.SMOKE_STATUS,load:process.env.LOAD_STATUS,zap:process.env.ZAP_STATUS,lighthouse:process.env.LIGHTHOUSE_STATUS},null,2));"
       - name: Upload evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: nightly-quality-reports
           path: reports/

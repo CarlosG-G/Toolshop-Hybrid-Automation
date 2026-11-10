@@ -1,4 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { defineBddConfig } from "playwright-bdd";
+
+const bddDir = defineBddConfig({
+  features: "tests/features/*.feature",
+  steps: "tests/features/steps/*.ts",
+  outputDir: ".features-gen",
+});
 
 const browserMatrix =
   process.env.TOOLSHOP_BROWSER_MATRIX === "1"
@@ -38,6 +45,56 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: [
+        "**/api/**",
+        "**/contract/**",
+        "**/e2e/**",
+        "**/security/**",
+        "**/nonfunctional/**",
+        "**/visual/sut.spec.ts",
+      ],
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "api",
+      testMatch: "**/api/**/*.spec.ts",
+      grep: /@api/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "contract",
+      testMatch: "**/contract/**/*.spec.ts",
+      grep: /@contract/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "e2e",
+      testMatch: "**/e2e/**/*.spec.ts",
+      grep: /@e2e/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "security",
+      testMatch: "**/security/**/*.spec.ts",
+      grep: /@security/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "nonfunctional",
+      testMatch: "**/nonfunctional/**/*.spec.ts",
+      grep: /@nonfunctional/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "bdd",
+      testDir: bddDir,
+      grep: /@bdd/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "visual-sut",
+      testMatch: "**/visual/sut.spec.ts",
+      grep: /@visual/,
       use: { ...devices["Desktop Chrome"] },
     },
     ...browserMatrix,

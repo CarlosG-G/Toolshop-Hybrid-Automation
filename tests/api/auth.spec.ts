@@ -1,9 +1,10 @@
 import { buildRegistration, dobForAge } from "../../src/data/factories.js";
-import { customer, expect, requiresWritableSut, test } from "../support/api-fixtures.js";
+import { expect, requiresWritableSut, test } from "../support/api-fixtures.js";
 
 test.describe("Authentication API @api", () => {
-  test("TC-API-010 logs in a seeded customer and returns a bearer token", async ({
+  test("TC-API-010 logs in an isolated customer and returns a bearer token", async ({
     api,
+    customer,
   }) => {
     requiresWritableSut();
     const result = await api.tryLogin(customer);
@@ -12,8 +13,7 @@ test.describe("Authentication API @api", () => {
     expect(result.body.access_token).toEqual(expect.any(String));
   });
 
-  test("TC-API-011 rejects a wrong password with 401", async ({ api }) => {
-    // Never brute-force shared public accounts: repeated failures lock them (HTTP 423).
+  test("TC-API-011 rejects a wrong password with 401", async ({ api, customer }) => {
     requiresWritableSut();
     const result = await api.tryLogin({ ...customer, password: "wrong-password" });
 
@@ -37,6 +37,7 @@ test.describe("Authentication API @api", () => {
   });
 
   test("TC-API-013 returns the profile of the authenticated customer", async ({
+    customer,
     customerApi,
   }) => {
     const result = await customerApi.tryMe();

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 const projectRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -21,7 +22,11 @@ function dashboardReport(missingReports: unknown, passed = 1) {
   };
 }
 
-async function openDashboard(page: Page, missingReports: unknown) {
+async function openDashboard(
+  page: Page,
+  missingReports: unknown,
+  extra: Record<string, unknown> = {},
+) {
   await page.route("**/report-dashboard", (route) =>
     route.fulfill({
       path: dashboardPath,
@@ -30,7 +35,7 @@ async function openDashboard(page: Page, missingReports: unknown) {
   );
   await page.route(/\/data\.json(?:\?.*)?$/, (route) =>
     route.fulfill({
-      json: dashboardReport(missingReports),
+      json: { ...dashboardReport(missingReports), ...extra },
     }),
   );
   await page.goto("http://127.0.0.1:4173/report-dashboard");
@@ -45,7 +50,7 @@ test("shows reports not produced separately from skipped cases", async ({ page }
   await expect(
     page.getByText("their test cases are not included in the totals"),
   ).toBeVisible();
-  await expect(page.getByText("Skipped cases")).toBeVisible();
+  await expect(page.locator(".card").filter({ hasText: "Skipped cases" })).toBeVisible();
   await expect(page.locator("#skipped")).toHaveText("0");
   await expect(page.getByText("Hermetic gate")).toBeVisible();
 });
@@ -64,6 +69,100 @@ test("shows an error when the missing reports list is invalid", async ({ page })
     "Report missing or invalid: missingReports must be a list of paths.",
   );
   await expect(page.locator("#passed")).toHaveText("—");
+});
+
+test("renders management, nightly evidence and trends without interpreting data as HTML", async ({
+  page,
+}) => {
+  await openDashboard(page, [], {
+    evidenceUrl: "https://github.com/example/project/actions/runs/123",
+    management: {
+      executed: 2,
+      passRatePercent: 50,
+      designCoverage: { covered: 1, total: 1 },
+      executionCoverage: { covered: 1, total: 1 },
+      requirements: [
+        {
+          id: "REQ-1",
+          risk: "High",
+          tests: ["TC-API-001"],
+          executedTests: ["TC-API-001"],
+          defects: ["DEF-001"],
+        },
+      ],
+      openDefects: [
+        {
+          id: "<img src=x onerror=alert(1)>",
+          severity: "Major",
+          status: "Open",
+          tests: ["TC-API-001"],
+        },
+      ],
+      byType: { api: { passed: 1, detected: 1, failed: 0, flaky: 0, skipped: 0 } },
+    },
+    quality: {
+      nightly: {
+        runId: "44",
+        conclusion: "failure",
+        url: "https://github.com/example/project/actions/runs/44",
+      },
+      load: {
+        p95Ms: 42,
+        failureRate: 0.001,
+        requests: 100,
+        requestsPerSecond: 10,
+        maxVus: 50,
+        thresholdsPassed: true,
+      },
+      zap: {
+        byRisk: { high: 0, medium: 1, low: 0, informational: 0 },
+        alerts: [{ name: "Header missing", risk: "medium", instances: 2 }],
+      },
+      lighthouse: {
+        pages: [
+          {
+            page: "home",
+            scores: { performance: 0.9, accessibility: 0.8, "best-practices": 1 },
+            passed: true,
+          },
+        ],
+      },
+    },
+    history: {
+      hasPrevious: true,
+      runs: [
+        {
+          runId: "123",
+          generatedAt: "2026-01-01",
+          passRatePercent: 50,
+          totals: { failed: 0, flaky: 0 },
+          executionCoverage: { covered: 1, total: 1 },
+        },
+      ],
+    },
+  });
+
+  await expect(page.locator("#management")).toContainText("Pass rate: 50%");
+  await expect(page.locator("#requirements")).toContainText("REQ-1");
+  await expect(page.locator("#defects")).toContainText("<img src=x onerror=alert(1)>");
+  await expect(page.locator("#defects img")).toHaveCount(0);
+  await expect(page.locator("#nightly-status")).toContainText("failure");
+  await expect(page.locator("#load")).toContainText("p95 42.0 ms");
+  await expect(page.locator("#zap")).toContainText("1 medium");
+  await expect(page.locator("#lighthouse")).toContainText("performance 90");
+  await expect(page.locator("#history")).toContainText("123");
+  await expect(page.locator("#evidence-link")).toHaveAttribute(
+    "href",
+    "https://github.com/example/project/actions/runs/123",
+  );
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa"])
+    .analyze();
+  expect(
+    accessibility.violations.filter((item) =>
+      ["critical", "serious"].includes(item.impact ?? ""),
+    ),
+  ).toEqual([]);
 });
 
 test("refreshes cached report data after an update", async ({ page }) => {

@@ -2,12 +2,12 @@ import { test as base, expect, request as playwrightRequest } from "@playwright/
 import { OpenApiContract } from "../../src/api/openapi-contract.js";
 import { ToolshopApi } from "../../src/api/toolshop-api.js";
 import { config } from "../../src/config/env.js";
-import { gates, seededCustomer } from "./gates.js";
-
-export const customer = seededCustomer;
+import { buildRegistration, type DemoUser } from "../../src/data/factories.js";
+import { gates } from "./gates.js";
 
 interface ApiFixtures {
   api: ToolshopApi;
+  customer: Pick<DemoUser, "email" | "password">;
   customerApi: ToolshopApi;
 }
 
@@ -32,13 +32,17 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
   api: async ({ request }, use) => {
     await use(new ToolshopApi(request, config.apiUrl));
   },
-  customerApi: async ({ request }, use) => {
-    // Public environments are shared and their seeded passwords get changed by other users.
+  customer: async ({ api }, use) => {
     test.skip(
       !config.allowsWrites,
-      "Seeded customer credentials are only reliable locally.",
+      "Creating isolated customers requires the disposable self-hosted SUT.",
     );
-    const api = new ToolshopApi(request, config.apiUrl);
+    const user = buildRegistration();
+    const registered = await api.tryRegister(user);
+    expect(registered.status, "Failed to create an isolated test customer").toBe(201);
+    await use({ email: user.email, password: user.password });
+  },
+  customerApi: async ({ api, customer }, use) => {
     await api.login(customer);
     await use(api);
   },

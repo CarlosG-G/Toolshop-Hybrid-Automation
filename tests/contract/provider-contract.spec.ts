@@ -1,4 +1,4 @@
-import { customer, expect, test } from "../support/api-fixtures.js";
+import { expect, test } from "../support/api-fixtures.js";
 
 /**
  * Consumer-side contract checks: real provider responses must honour the
@@ -39,9 +39,14 @@ test.describe("OpenAPI provider contract @contract", () => {
     );
   });
 
-  test("TC-CON-006 POST /users/login matches its schema", async ({ api, contract }) => {
+  test("TC-CON-006 POST /users/login matches its schema", async ({
+    api,
+    contract,
+    customer,
+  }) => {
     const result = await api.tryLogin(customer);
 
+    expect(result.status).toBe(200);
     expect(contract.violations("post", "/users/login", 200, result.body)).toEqual([]);
   });
 

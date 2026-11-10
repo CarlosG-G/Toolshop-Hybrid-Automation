@@ -5,42 +5,184 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Toolshop automation report</title>
     <style>
-      :root { color-scheme: light; font-family: system-ui, sans-serif; }
-      body { margin: 0 auto; max-width: 1000px; padding: 2rem; color: #17212b; }
-      h1 { margin-bottom: .25rem; }
+      :root { color-scheme: light; font-family: system-ui, sans-serif; color: #172a3a; background: #f3f7fa; }
+      body { margin: 0 auto; max-width: 1200px; padding: 2rem 1.25rem 4rem; }
+      header { background: #103249; color: white; border-radius: 1rem; padding: 2rem; }
+      h1 { margin: .25rem 0; font-size: clamp(2rem, 5vw, 3rem); }
+      h2 { margin-top: 0; }
+      h3 { margin-bottom: .5rem; }
+      a { color: #075d80; }
+      header a { color: #a7e6ff; }
+      .eyebrow { color: #b7e7ec; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
       .muted { color: #526170; }
-      .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
-      .card { border: 1px solid #cbd5df; border-radius: .5rem; padding: 1rem; }
-      .value { display: block; font-size: 1.8rem; font-weight: 700; }
-      table { border-collapse: collapse; width: 100%; }
-      th, td { border-bottom: 1px solid #cbd5df; padding: .65rem; text-align: left; }
-      th { background: #f2f5f8; }
+      header .muted { color: #d3e2e8; }
+      .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .75rem; margin: 1.25rem 0; }
+      .card, section.panel { background: white; border: 1px solid #d5e0e6; border-radius: .75rem; padding: 1rem; }
+      section.panel { margin-top: 1rem; padding: 1.5rem; }
+      .value { display: block; font-size: 1.8rem; font-weight: 700; color: #103c54; }
+      .table-wrap { overflow-x: auto; }
+      table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+      th, td { border-bottom: 1px solid #d5e0e6; padding: .65rem; text-align: left; vertical-align: top; }
+      th { background: #edf4f7; }
       code { overflow-wrap: anywhere; }
+      .quality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+      .quality-grid > div { background: #f3f7fa; border-radius: .5rem; padding: 1rem; }
+      [hidden] { display: none !important; }
     </style>
   </head>
   <body>
     <header>
+      <div class="eyebrow">Quality engineering · executable evidence</div>
       <h1>Toolshop automation report</h1>
-      <p class="muted" id="run-status">Loading latest run…</p>
+      <p class="muted">Disposable demo SUT · Playwright + Vibium · ISTQB-aligned test management</p>
+      <p class="muted" id="run-status" role="status">Loading latest run…</p>
+      <a id="evidence-link" hidden>Open run and trace artifacts</a>
     </header>
     <section class="cards" aria-label="Test totals">
       <div class="card">Passed <span class="value" id="passed">—</span></div>
-      <div class="card">Detected <span class="value" id="detected">—</span></div>
+      <div class="card">Detected defects <span class="value" id="detected">—</span></div>
       <div class="card">Failed <span class="value" id="failed">—</span></div>
       <div class="card">Flaky <span class="value" id="flaky">—</span></div>
       <div class="card">Skipped cases <span class="value" id="skipped">—</span></div>
     </section>
-    <section id="missing-reports" aria-labelledby="missing-reports-title" hidden>
+    <section class="panel" aria-labelledby="management-title">
+      <h2 id="management-title">Test-cycle summary</h2>
+      <p class="muted">Pass rate excludes skipped cases; detected defects and flaky results are not passes. Demo evidence is not a production release authorization.</p>
+      <div id="management">Management metrics not provided.</div>
+      <h3>Requirement traceability</h3>
+      <p class="muted">Execution coverage means at least one linked test ran, not that every test passed.</p>
+      <div id="requirements" class="table-wrap">Traceability not provided.</div>
+      <h3>Open recorded defects</h3>
+      <div id="defects" class="table-wrap">Defect data not provided.</div>
+    </section>
+    <section class="panel" aria-labelledby="types-title">
+      <h2 id="types-title">Results by test type</h2>
+      <div id="types" class="table-wrap">Test-type metrics not provided.</div>
+    </section>
+    <section class="panel" aria-labelledby="quality-title">
+      <h2 id="quality-title">Nightly load, security and Lighthouse</h2>
+      <p class="muted" id="nightly-status">Nightly evidence not provided.</p>
+      <a id="nightly-link" hidden>Open nightly evidence</a>
+      <div class="quality-grid">
+        <div><h3>k6 load</h3><div id="load">Load evidence unavailable.</div></div>
+        <div><h3>OWASP ZAP baseline</h3><div id="zap">Security evidence unavailable.</div></div>
+        <div><h3>Lighthouse desktop</h3><div id="lighthouse">Lighthouse evidence unavailable.</div></div>
+      </div>
+      <div id="zap-alerts" class="table-wrap"></div>
+    </section>
+    <section class="panel" aria-labelledby="history-title">
+      <h2 id="history-title">Recent runs</h2>
+      <p class="muted">Up to 10 published runs. Public-target availability can change the scope between runs.</p>
+      <p class="muted" id="history-note"></p>
+      <div id="history" class="table-wrap">Run history not provided.</div>
+    </section>
+    <section class="panel" id="missing-reports" aria-labelledby="missing-reports-title" hidden>
       <h2 id="missing-reports-title">Reports not produced</h2>
       <p class="muted">These reports were not produced; their test cases are not included in the totals.</p>
       <ul id="missing-report-list"></ul>
     </section>
-    <section>
+    <section class="panel">
       <h2>Test evidence</h2>
-      <div id="cases">No run report loaded.</div>
+      <div id="cases" class="table-wrap">No run report loaded.</div>
     </section>
     <script>
       const status = document.querySelector("#run-status");
+      function table(headers, rows) {
+        const table = document.createElement("table");
+        const head = document.createElement("thead");
+        const header = document.createElement("tr");
+        for (const title of headers) {
+          const cell = document.createElement("th");
+          cell.scope = "col";
+          cell.textContent = title;
+          header.append(cell);
+        }
+        head.append(header);
+        table.append(head);
+        const body = document.createElement("tbody");
+        for (const row of rows) {
+          const tr = document.createElement("tr");
+          for (const value of row) {
+            const cell = document.createElement("td");
+            cell.textContent = String(value);
+            tr.append(cell);
+          }
+          body.append(tr);
+        }
+        table.append(body);
+        return table;
+      }
+      function renderTable(selector, headers, rows, empty) {
+        const container = document.querySelector(selector);
+        if (rows.length === 0) {
+          container.textContent = empty;
+        } else {
+          container.replaceChildren(table(headers, rows));
+        }
+      }
+      function safeLink(selector, value) {
+        if (typeof value !== "string") return;
+        try {
+          const url = new URL(value);
+          if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error("Unsupported URL protocol.");
+          const link = document.querySelector(selector);
+          link.href = url.href;
+          link.hidden = false;
+        } catch {
+          document.querySelector(selector).textContent = "Run artifact URL is invalid.";
+          document.querySelector(selector).hidden = false;
+        }
+      }
+      function renderManagement(management) {
+        if (!management) return;
+        const rate = management.passRatePercent === null ? "not available" : `${management.passRatePercent}%`;
+        document.querySelector("#management").textContent =
+          `Executed: ${management.executed} · Pass rate: ${rate} · Designed requirements: ${management.designCoverage.covered}/${management.designCoverage.total} · Executed requirements: ${management.executionCoverage.covered}/${management.executionCoverage.total}`;
+        renderTable("#requirements", ["Requirement", "Risk", "Designed", "Executed", "Defects"],
+          management.requirements.map((item) => [item.id, item.risk, item.tests.length, item.executedTests.length, item.defects.join(", ") || "—"]),
+          "No requirements reported.");
+        renderTable("#defects", ["Defect", "Severity", "Status", "Linked tests"],
+          management.openDefects.map((item) => [item.id, item.severity, item.status, item.tests.join(", ")]),
+          "No open defects recorded.");
+        renderTable("#types", ["Type", "Passed", "Detected", "Failed", "Flaky", "Skipped"],
+          Object.entries(management.byType).sort(([a], [b]) => a.localeCompare(b))
+            .map(([type, counts]) => [type, counts.passed, counts.detected, counts.failed, counts.flaky, counts.skipped]),
+          "No individual test cases were reported.");
+      }
+      function renderQuality(quality) {
+        if (!quality) return;
+        const nightly = quality.nightly;
+        document.querySelector("#nightly-status").textContent = nightly
+          ? `Nightly run ${nightly.runId}: ${nightly.conclusion}. Evidence reflects that run, not the current CI run.`
+          : "No completed nightly run was available.";
+        if (nightly) safeLink("#nightly-link", nightly.url);
+        if (quality.load) {
+          const load = quality.load;
+          document.querySelector("#load").textContent =
+            `p95 ${load.p95Ms.toFixed(1)} ms · error rate ${(load.failureRate * 100).toFixed(2)}% · ${load.requests} requests · ${load.requestsPerSecond.toFixed(1)} req/s · ${load.maxVus} max VUs · thresholds ${load.thresholdsPassed ? "passed" : "failed"}`;
+        }
+        if (quality.zap) {
+          const risk = quality.zap.byRisk;
+          document.querySelector("#zap").textContent =
+            `Alert types: ${risk.high} high, ${risk.medium} medium, ${risk.low} low, ${risk.informational} informational. Passive scan only.`;
+          renderTable("#zap-alerts", ["ZAP alert", "Risk", "Instances"],
+            quality.zap.alerts.map((alert) => [alert.name, alert.risk, alert.instances]), "No ZAP alerts reported.");
+        }
+        if (quality.lighthouse) {
+          const lines = quality.lighthouse.pages.map((page) =>
+            `${page.page}: performance ${Math.round(page.scores.performance * 100)}, accessibility ${Math.round(page.scores.accessibility * 100)}, best practices ${Math.round(page.scores["best-practices"] * 100)} (${page.passed ? "passed" : "below budget"})`);
+          document.querySelector("#lighthouse").textContent = lines.join(" · ");
+        }
+      }
+      function renderHistory(history) {
+        if (!history) return;
+        if (!history.hasPrevious) document.querySelector("#history-note").textContent = "No previous published history was available for this build.";
+        renderTable("#history", ["Run", "Generated", "Pass rate", "Failed", "Flaky", "Requirements executed"],
+          history.runs.map((run) => [run.runId || "local", run.generatedAt,
+            run.passRatePercent === null ? "not available" : `${run.passRatePercent}%`,
+            run.totals.failed, run.totals.flaky,
+            `${run.executionCoverage.covered}/${run.executionCoverage.total}`]), "No runs recorded.");
+      }
       fetch(`./data.json?fresh=${Date.now()}`, { cache: "no-store" })
         .then((response) => {
           if (!response.ok) throw new Error(`Report unavailable (${response.status})`);
@@ -51,12 +193,14 @@
               report.missingReports.some((path) => typeof path !== "string")) {
             throw new Error("Report missing or invalid: missingReports must be a list of paths.");
           }
-          document.querySelector("#passed").textContent = report.totals.passed;
-          document.querySelector("#detected").textContent = report.totals.detected;
-          document.querySelector("#failed").textContent = report.totals.failed;
-          document.querySelector("#flaky").textContent = report.totals.flaky;
-          document.querySelector("#skipped").textContent = report.totals.skipped;
+          for (const key of ["passed", "detected", "failed", "flaky", "skipped"]) {
+            document.querySelector(`#${key}`).textContent = report.totals[key];
+          }
           status.textContent = `Target: ${report.target} · Infrastructure: ${report.infrastructure} · ${report.generatedAt}`;
+          safeLink("#evidence-link", report.evidenceUrl);
+          renderManagement(report.management);
+          renderQuality(report.quality);
+          renderHistory(report.history);
           if (report.missingReports.length > 0) {
             const list = document.querySelector("#missing-report-list");
             for (const path of report.missingReports) {
@@ -66,25 +210,9 @@
             }
             document.querySelector("#missing-reports").hidden = false;
           }
-          const container = document.querySelector("#cases");
-          if (report.cases.length === 0) {
-            container.textContent = "No individual test cases were reported.";
-            return;
-          }
-          const table = document.createElement("table");
-          table.innerHTML = "<thead><tr><th>Target</th><th>Test</th><th>Status</th><th>Duration</th></tr></thead>";
-          const body = document.createElement("tbody");
-          for (const testCase of report.cases) {
-            const row = document.createElement("tr");
-            for (const value of [testCase.target, testCase.title, testCase.status, `${testCase.durationMs} ms`]) {
-              const cell = document.createElement("td");
-              cell.textContent = value;
-              row.append(cell);
-            }
-            body.append(row);
-          }
-          table.append(body);
-          container.replaceChildren(table);
+          renderTable("#cases", ["Target", "Type", "Test", "Status", "Duration"],
+            report.cases.map((testCase) => [testCase.target, testCase.type || "other", testCase.title, testCase.status, `${testCase.durationMs} ms`]),
+            "No individual test cases were reported.");
         })
         .catch((error) => {
           status.textContent = error.message;

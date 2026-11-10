@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
-import { collectDefects, trace } from "../../scripts/build-traceability.js";
+import { mkdtempSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import {
+  collectDefects,
+  collectDefectDetails,
+  collectTestIds,
+  trace,
+} from "../../scripts/build-traceability.js";
 
 const requirements = [
   { id: "REQ-1", title: "a", risk: "High", tests: ["TC-API-00[12]"] },
@@ -32,4 +40,35 @@ test("defect log rows are parsed with their status", () => {
     ["DEF-001", "Open"],
     ["DEF-002", "Fixed"],
   ]);
+});
+
+test("defects retain severity and test links; missing links fail explicitly", () => {
+  expect(
+    collectDefectDetails(
+      "| DEF-001 | Missing field | Major | High | TC-API-001 | Open |",
+    ),
+  ).toEqual([
+    {
+      id: "DEF-001",
+      title: "Missing field",
+      severity: "Major",
+      priority: "High",
+      tests: ["TC-API-001"],
+      status: "Open",
+    },
+  ]);
+  expect(() =>
+    collectDefectDetails("| DEF-001 | Missing field | Major | High | none | Open |"),
+  ).toThrow("does not reference a test case");
+});
+test("traceability collects scenario outline IDs from Gherkin features", () => {
+  const directory = mkdtempSync(join(tmpdir(), "toolshop-traceability-"));
+  const feature = join(directory, "checkout.feature");
+  try {
+    writeFileSync(feature, "Scenario Outline: <case>\n| TC-BDD-010 |\n| TC-BDD-011 |\n");
+    expect(collectTestIds(directory)).toEqual(["TC-BDD-010", "TC-BDD-011"]);
+  } finally {
+    unlinkSync(feature);
+    rmdirSync(directory);
+  }
 });

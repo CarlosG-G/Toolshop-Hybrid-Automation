@@ -18,7 +18,13 @@
       "id": "REQ-AUTH-01",
       "title": "Customers can authenticate and access their profile",
       "risk": "High",
-      "tests": ["TC-API-01[0-4]", "TC-E2E-02[0-2]", "TC-A11Y-002"]
+      "tests": [
+        "TC-API-01[0-4]",
+        "TC-E2E-02[0-2]",
+        "TC-A11Y-002",
+        "TC-VIS-001",
+        "TC-VIB-00[12]"
+      ]
     },
     {
       "id": "REQ-REG-01",
@@ -30,6 +36,7 @@
         "TC-API-067",
         "TC-E2E-002",
         "TC-E2E-02[34]",
+        "TC-BDD-001",
         "TC-A11Y-003"
       ]
     },
@@ -37,19 +44,19 @@
       "id": "REQ-CART-01",
       "title": "Customers can build a cart with valid products",
       "risk": "Medium",
-      "tests": ["TC-API-03[01]", "TC-API-065"]
+      "tests": ["TC-API-03[01]", "TC-API-065", "TC-VIB-001"]
     },
     {
       "id": "REQ-PAY-01",
       "title": "Payment data is validated per method before an order is placed",
       "risk": "High",
-      "tests": ["TC-API-04\\d", "TC-E2E-03\\d"]
+      "tests": ["TC-API-04\\d", "TC-E2E-03\\d", "TC-BDD-01[0-4]", "TC-BDD-02[0-5]"]
     },
     {
       "id": "REQ-CHK-01",
       "title": "Authenticated customers can complete checkout and receive an invoice",
       "risk": "High",
-      "tests": ["TC-API-05[0-2]", "TC-E2E-001", "TC-E2E-01\\d"]
+      "tests": ["TC-API-05[0-2]", "TC-E2E-001", "TC-E2E-01\\d", "TC-BDD-01[0-4]"]
     },
     {
       "id": "REQ-API-01",

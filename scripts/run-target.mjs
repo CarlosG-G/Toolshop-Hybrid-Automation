@@ -8,13 +8,16 @@ if (!["stable", "with-bugs", "local"].includes(target)) {
   process.exit(2);
 }
 
+const args = process.argv.slice(3);
+const hasWorkers = args.some((arg) => /^(--workers(?:=|$)|-j(?:=|\d|$))/.test(arg));
+
 const result = spawnSync(
   process.execPath,
   [
     "node_modules/@playwright/test/cli.js",
     "test",
-    "--workers=1",
-    ...process.argv.slice(3),
+    ...(hasWorkers ? [] : ["--workers=1"]),
+    ...args,
   ],
   {
     stdio: "inherit",
