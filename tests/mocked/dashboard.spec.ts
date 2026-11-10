@@ -52,6 +52,10 @@ test("provides a self-contained dashboard icon", async ({ page }) => {
 test("shows reports not produced separately from skipped cases", async ({ page }) => {
   await openDashboard(page, ["reports/live-ui.json", "reports/vibium.json"]);
 
+  await expect(
+    page.locator(".card").filter({ hasText: "Defect observations" }),
+  ).toBeVisible();
+  await expect(page.getByText(/count test cases, not unique defects/)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Reports not produced" })).toBeVisible();
   await expect(page.getByText("reports/live-ui.json")).toBeVisible();
   await expect(page.getByText("reports/vibium.json")).toBeVisible();

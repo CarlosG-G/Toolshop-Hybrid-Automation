@@ -100,6 +100,7 @@ const markdown = [
   `- External infrastructure: **${report.infrastructure}**`,
   `- Generated: ${report.generatedAt}`,
   `- Passed: **${report.totals.passed}** · Detected: **${report.totals.detected}** · Failed: **${report.totals.failed}** · Flaky: **${report.totals.flaky}** · Skipped: **${report.totals.skipped}**`,
+  "- Detected counts test observations, not unique defects.",
   missing,
   caseTable,
   "",

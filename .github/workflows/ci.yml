@@ -482,7 +482,7 @@ jobs:
               marker,
               '## Toolshop test evidence',
               `Required jobs: static/hermetic **${process.env.QUALITY_RESULT}**, SUT **${process.env.SUT_RESULT}**, hybrid **${process.env.HYBRID_RESULT}**.`,
-              `Executed **${report.executed}**; passed **${report.totals.passed}**; detected defects **${report.totals.detected}**; failed **${report.totals.failed}**; flaky **${report.totals.flaky}**; skipped **${report.totals.skipped}**. Pass rate: **${rate}**.`,
+              `Executed **${report.executed}**; passed **${report.totals.passed}**; defect observations **${report.totals.detected}** (not unique defects); failed **${report.totals.failed}**; flaky **${report.totals.flaky}**; skipped **${report.totals.skipped}**. Pass rate: **${rate}**.`,
               `Requirements executed: **${report.executionCoverage.covered}/${report.executionCoverage.total}**; recorded open defects: **${report.openDefects.length}**; missing reports: **${report.missingReports.length}**.`,
               'Public-target checks are advisory; missing evidence is not counted as a pass.',
               `[Open run and trace artifacts](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,

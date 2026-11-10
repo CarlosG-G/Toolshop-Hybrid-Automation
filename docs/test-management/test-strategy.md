@@ -69,9 +69,11 @@ and investigate the root cause. A successful retry is not counted as a clean pas
 The exit report records passed, detected, failed, flaky and skipped cases, open
 defects by severity and [requirement traceability](traceability-matrix.md).
 Pass rate divides clean passes by executed cases; skipped cases are excluded,
-while detected defects and flaky cases remain in the denominator. Requirement
-execution coverage means at least one linked case executed, not that every
-linked case passed. Missing reports are identified separately.
+while detected observations and flaky cases remain in the denominator.
+Detected observations count test cases, not unique defects: multiple cases or
+targets can detect the same defect. Requirement execution coverage means at
+least one linked case executed, not that every linked case passed. Missing
+reports are identified separately.
 
 ## 8. Product risk analysis
 

@@ -143,7 +143,7 @@ test("exposes failed or missing hybrid reports instead of hiding them", async ()
 });
 
 test("reports expected defects and flaky retries using Playwright's JSON shape", async () => {
-  const { report } = await buildReport({
+  const { report, markdown } = await buildReport({
     [sources[0]]: playwrightReport("Known defect", "expected", "failed"),
     [sources[1]]: playwrightReport("Flaky retry", "flaky"),
   });
@@ -155,6 +155,7 @@ test("reports expected defects and flaky retries using Playwright's JSON shape",
       { status: "flaky", durationMs: 12 },
     ],
   });
+  expect(markdown).toContain("Detected counts test observations, not unique defects.");
 });
 
 test("fails explicitly when no expected reports exist", async () => {
