@@ -7,11 +7,16 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+      production-dependencies:
+        dependency-type: production
     commit-message:
       prefix: chore
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
     commit-message:
       prefix: ci

@@ -10,6 +10,8 @@
 - Nightly k6 load testing, OWASP ZAP baseline scanning and Lighthouse budgets.
 - Test-cycle exit reports, quality metrics, history and a public dashboard.
 - Dependabot, CodeQL, production dependency auditing and a CycloneDX SBOM.
+- Pull request hygiene, dependency review, workflow lint, OpenSSF Scorecard
+  and tag-driven release workflows; CodeQL also scans the workflows.
 - Recruiter-facing documentation, architecture diagram and hermetic demo.
 
 ### Changed
