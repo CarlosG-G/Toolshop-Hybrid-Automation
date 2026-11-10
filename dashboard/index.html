@@ -170,8 +170,14 @@
             quality.zap.alerts.map((alert) => [alert.name, alert.risk, alert.instances]), "No ZAP alerts reported.");
         }
         if (quality.lighthouse) {
-          const lines = quality.lighthouse.pages.map((page) =>
-            `${page.page}: performance ${Math.round(page.scores.performance * 100)}, accessibility ${Math.round(page.scores.accessibility * 100)}, best practices ${Math.round(page.scores["best-practices"] * 100)} (${page.passed ? "passed" : "below budget"})`);
+          const lines = quality.lighthouse.pages.map((page) => {
+            const method = page.samples ? " median" : "";
+            const minimum = page.samples ? " minimum" : "";
+            const samples = page.samples
+              ? `; samples (performance/accessibility/best practices): ${page.samples.map((score) => [score.performance, score.accessibility, score["best-practices"]].map((value) => Math.round(value * 100)).join("/")).join(", ")}`
+              : "";
+            return `${page.page}: performance ${Math.round(page.scores.performance * 100)}${method}, accessibility ${Math.round(page.scores.accessibility * 100)}${minimum}, best practices ${Math.round(page.scores["best-practices"] * 100)}${minimum} (${page.passed ? "passed" : "below budget"})${samples}`;
+          });
           document.querySelector("#lighthouse").textContent = lines.join(" · ");
         }
       }

@@ -210,10 +210,15 @@ designed cases. Project names identify the browser when Playwright reports it.
   Chromium jobs use the hosted runner's browser libraries.
 - k6 load uses up to 50 VUs with p95 below 1.5 s, error rate below 1% and checks
   above 99%. Lighthouse desktop minimum scores are 0.60 performance, 0.80
-  accessibility and 0.80 best practices for home and login.
+  accessibility and 0.80 best practices for home and login. Each page is audited
+  five times sequentially: the performance gate uses the median and the other
+  gates use their lowest observed score. All samples and their JSON/HTML reports
+  are retained. This follows Lighthouse's guidance on
+  [score variability](https://github.com/GoogleChrome/lighthouse/blob/main/docs/variability.md).
 - ZAP baseline findings require triage; they are not a penetration test. k6 and
-  Lighthouse numbers describe the CI SUT, not production capacity or real-user
-  experience. Missing or failed reports are displayed explicitly.
+  Lighthouse numbers describe the CI SUT, which uses Angular's development server
+  (`ng serve`), not production capacity or real-user experience. Missing or failed
+  reports are displayed explicitly.
 - GitHub Actions are pinned by commit SHA. CI checks production dependencies
   with `npm audit --omit=dev --audit-level=high` and produces a CycloneDX SBOM.
   The full development audit currently reports a moderate

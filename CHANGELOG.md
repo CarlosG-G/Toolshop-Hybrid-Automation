@@ -18,6 +18,8 @@
 - Separate optional public diagnostics from required hermetic and SUT gates.
 - Restrict write, load and audit targets to loopback disposable environments.
 - Report known-defect and flaky outcomes separately from clean passes.
+- Evaluate Lighthouse performance using five sequential samples and the median,
+  retaining all samples and applying the lowest accessibility and best-practice scores.
 - Require Node.js 22.19 or later.
 
 ### Fixed

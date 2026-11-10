@@ -1,4 +1,11 @@
-import type { LighthousePage } from "./lighthouse.js";
+import {
+  aggregateLighthouseScores,
+  lighthousePageUrl,
+  lighthouseSampleCount,
+  passesLighthouseBudgets,
+  type LighthousePage,
+  type LighthouseScores,
+} from "./lighthouse.js";
 import { isRecord } from "./guards.js";
 
 export interface LoadMetrics {
@@ -30,6 +37,18 @@ function numberField(value: unknown, key: string, context: string): number {
     throw new Error(`${context}: invalid ${key}.`);
   }
   return value[key];
+}
+
+function lighthouseSummaryScores(input: unknown): LighthouseScores {
+  const scores = {
+    performance: numberField(input, "performance", "Lighthouse summary"),
+    accessibility: numberField(input, "accessibility", "Lighthouse summary"),
+    "best-practices": numberField(input, "best-practices", "Lighthouse summary"),
+  };
+  if (Object.values(scores).some((score) => score < 0 || score > 1)) {
+    throw new Error("Lighthouse summary: score out of range.");
+  }
+  return scores;
 }
 
 export function summarizeK6(value: unknown): LoadMetrics {
@@ -122,22 +141,41 @@ export function summarizeLighthouseRun(value: unknown): {
     ) {
       throw new Error("Lighthouse summary: invalid page.");
     }
+    const scores = lighthouseSummaryScores(page.scores);
+    let samples: LighthouseScores[] | undefined;
+    let url = page.url;
+    if (page.samples !== undefined) {
+      if (!Array.isArray(page.samples) || page.samples.length !== lighthouseSampleCount) {
+        throw new Error("Lighthouse summary: invalid samples.");
+      }
+      url = lighthousePageUrl(page.page, url);
+      samples = page.samples.map(lighthouseSummaryScores);
+      const aggregate = aggregateLighthouseScores(samples);
+      if (
+        aggregate.performance !== scores.performance ||
+        aggregate.accessibility !== scores.accessibility ||
+        aggregate["best-practices"] !== scores["best-practices"] ||
+        page.passed !== passesLighthouseBudgets(scores)
+      ) {
+        throw new Error("Lighthouse summary: inconsistent sample results.");
+      }
+    }
     return {
       page: page.page,
-      url: page.url,
+      url,
       passed: page.passed,
-      scores: {
-        performance: numberField(page.scores, "performance", "Lighthouse summary"),
-        accessibility: numberField(page.scores, "accessibility", "Lighthouse summary"),
-        "best-practices": numberField(
-          page.scores,
-          "best-practices",
-          "Lighthouse summary",
-        ),
-      },
+      scores,
+      ...(samples ? { samples } : {}),
     };
   });
-  if (pages.length !== 2 || value.passed !== pages.every((page) => page.passed)) {
+  if (
+    pages.length !== 2 ||
+    value.passed !== pages.every((page) => page.passed) ||
+    (pages.some((page) => page.samples) && !pages.every((page) => page.samples)) ||
+    (pages.every((page) => page.samples) &&
+      (new Set(pages.map((page) => page.page)).size !== pages.length ||
+        new Set(pages.map((page) => new URL(page.url).origin)).size !== 1))
+  ) {
     throw new Error("Lighthouse summary: inconsistent page results.");
   }
   return { passed: value.passed, pages };

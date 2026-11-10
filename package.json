@@ -37,7 +37,7 @@
     "bdd:generate": "bddgen",
     "test:bdd": "bddgen && playwright test --project=bdd",
     "report:exit": "tsx scripts/build-exit-report.ts",
-    "lighthouse:collect": "node scripts/run-lighthouse.mjs",
+    "lighthouse:collect": "tsx scripts/run-lighthouse.ts",
     "lighthouse:report": "tsx scripts/build-lighthouse-report.ts"
   },
   "dependencies": {

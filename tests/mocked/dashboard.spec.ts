@@ -164,6 +164,13 @@ test("renders management, nightly evidence and trends without interpreting data 
             page: "home",
             scores: { performance: 0.9, accessibility: 0.8, "best-practices": 1 },
             passed: true,
+            samples: [
+              { performance: 0.88, accessibility: 0.8, "best-practices": 1 },
+              { performance: 0.89, accessibility: 0.81, "best-practices": 1 },
+              { performance: 0.9, accessibility: 0.82, "best-practices": 1 },
+              { performance: 0.91, accessibility: 0.83, "best-practices": 1 },
+              { performance: 0.92, accessibility: 0.84, "best-practices": 1 },
+            ],
           },
         ],
       },
@@ -189,7 +196,11 @@ test("renders management, nightly evidence and trends without interpreting data 
   await expect(page.locator("#nightly-status")).toContainText("failure");
   await expect(page.locator("#load")).toContainText("p95 42.0 ms");
   await expect(page.locator("#zap")).toContainText("1 medium");
-  await expect(page.locator("#lighthouse")).toContainText("performance 90");
+  await expect(page.locator("#lighthouse")).toContainText("performance 90 median");
+  await expect(page.locator("#lighthouse")).toContainText("accessibility 80 minimum");
+  await expect(page.locator("#lighthouse")).toContainText(
+    "88/80/100, 89/81/100, 90/82/100, 91/83/100, 92/84/100",
+  );
   await expect(page.locator("#history")).toContainText("123");
   await expect(page.locator("#evidence-link")).toHaveAttribute(
     "href",
@@ -203,6 +214,25 @@ test("renders management, nightly evidence and trends without interpreting data 
       ["critical", "serious"].includes(item.impact ?? ""),
     ),
   ).toEqual([]);
+});
+
+test("renders legacy Lighthouse reports without a sampling label", async ({ page }) => {
+  await openDashboard(page, [], {
+    quality: {
+      lighthouse: {
+        pages: [
+          {
+            page: "home",
+            scores: { performance: 0.9, accessibility: 0.8, "best-practices": 1 },
+            passed: true,
+          },
+        ],
+      },
+    },
+  });
+  await expect(page.locator("#lighthouse")).toContainText(
+    "home: performance 90, accessibility 80, best practices 100 (passed)",
+  );
 });
 
 test("refreshes cached report data after an update", async ({ page }) => {
