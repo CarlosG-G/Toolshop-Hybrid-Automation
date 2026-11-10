@@ -1,6 +1,7 @@
 import { billingAddress } from "../../src/data/factories.js";
 import { invalidPayments, validPayments } from "../../src/data/payments.js";
 import { expect, requiresWritableSut, test } from "../support/api-fixtures.js";
+import { markKnownDefect } from "../support/known-defect.js";
 
 test.describe("Cart API @api @writes", () => {
   test.beforeEach(requiresWritableSut);
@@ -70,13 +71,16 @@ test.describe("Payment API negative partitions @api", () => {
   }
 
   test("TC-API-042 rejects an unknown payment method", async ({ api }) => {
-    // DEF-002: PaymentController::check only validates the five known methods.
-    test.fail(true, "DEF-002 undocumented payment methods are accepted");
     const result = await api.tryCheckPayment({
       payment_method: "crypto" as never,
       payment_details: {},
     });
 
+    markKnownDefect(
+      result.status,
+      200,
+      "DEF-002 undocumented payment methods are accepted",
+    );
     expect(result.status).toBeGreaterThanOrEqual(400);
     expect(result.status).toBeLessThan(500);
   });

@@ -2,8 +2,9 @@
 
 Defects found by the automated suites against the self-hosted Toolshop (sprint 5).
 Severity and priority follow the ISTQB glossary; each defect is linked to the test case that detects it.
-Detecting tests are marked with `test.fail()` so the pipeline stays green while the defect is open
-and turns red as soon as the behaviour changes (fixed or regressed differently).
+Known SUT defects use `test.fail()` only after checking the observed response or
+violation. A changed signature or unrelated earlier error fails normally and
+requires triage. DEF-003 is a separate, informational public-environment finding.
 
 | ID      | Title                                                | Severity | Priority | Detected by | Status                 |
 | ------- | ---------------------------------------------------- | -------- | -------- | ----------- | ---------------------- |

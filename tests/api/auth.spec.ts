@@ -1,5 +1,6 @@
 import { buildRegistration, dobForAge } from "../../src/data/factories.js";
 import { expect, requiresWritableSut, test } from "../support/api-fixtures.js";
+import { markKnownDefect } from "../support/known-defect.js";
 
 test.describe("Authentication API @api", () => {
   test("TC-API-010 logs in an isolated customer and returns a bearer token", async ({
@@ -101,16 +102,16 @@ test.describe("Registration API @api @writes", () => {
     });
   }
   for (const boundary of ageBoundaries.filter((candidate) => !candidate.valid)) {
+    const knownDefect =
+      boundary.id === "TC-API-025"
+        ? "DEF-001 upper age limit is 93 instead of 75"
+        : undefined;
     test(`${boundary.id} date of birth BVA rejects ${boundary.label}`, async ({
       api,
     }) => {
-      // DEF-001: the API derives the upper bound from a mutated Carbon instance (now - 18 - 75 years).
-      test.fail(
-        boundary.id === "TC-API-025",
-        "DEF-001 upper age limit is 93 instead of 75",
-      );
       const result = await api.tryRegister(buildRegistration({ dob: boundary.dob }));
 
+      markKnownDefect(result.status, 201, knownDefect);
       expect(result.status).toBeGreaterThanOrEqual(400);
       expect(result.status).toBeLessThan(500);
     });

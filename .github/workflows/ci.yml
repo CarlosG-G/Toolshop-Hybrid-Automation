@@ -236,8 +236,17 @@ jobs:
                 node node_modules/@playwright/test/cli.js test --project=visual-sut --workers=1 "${extra[@]}"
               ;;
             vibium)
-              npx vibium install
-              node scripts/run-target.mjs local tests/vibium/local.spec.ts
+              install_output="$(npx vibium install)"
+              printf '%s\n' "$install_output"
+              chrome="$(printf '%s\n' "$install_output" | sed -n 's/^Chrome: //p' | tail -n 1)"
+              if [ -z "$chrome" ] || [ ! -x "$chrome" ]; then
+                echo "::error::Vibium did not report an executable Chrome path."
+                exit 1
+              fi
+              # Allow this Chrome binary to use its sandbox without changing the global policy.
+              printf 'abi <abi/4.0>,\ninclude <tunables/global>\nprofile toolshop-vibium-chrome "%s" flags=(unconfined) {\n  userns,\n}\n' "$chrome" > "$RUNNER_TEMP/toolshop-vibium.apparmor"
+              sudo apparmor_parser -r "$RUNNER_TEMP/toolshop-vibium.apparmor"
+              VIBIUM_STDERR=1 node scripts/run-target.mjs local tests/vibium/local.spec.ts
               ;;
             *)
               echo "::error::Unknown SUT suite."

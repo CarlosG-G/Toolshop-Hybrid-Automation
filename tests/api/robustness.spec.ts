@@ -1,6 +1,7 @@
 import { buildRegistration } from "../../src/data/factories.js";
 import { config } from "../../src/config/env.js";
 import { expect, requiresWritableSut, test } from "../support/api-fixtures.js";
+import { markKnownDefect } from "../support/known-defect.js";
 
 test.describe("API robustness and input validation @api @negative", () => {
   test.beforeEach(requiresWritableSut);
@@ -30,20 +31,28 @@ test.describe("API robustness and input validation @api @negative", () => {
   });
 
   test("TC-API-062 rejects a malformed email on registration", async ({ api }) => {
-    test.fail(true, "DEF-004 the API accepts malformed emails that the UI rejects");
     const result = await api.tryRegister(
       buildRegistration({ email: `not-an-email-${crypto.randomUUID()}` }),
     );
 
+    markKnownDefect(
+      result.status,
+      201,
+      "DEF-004 the API accepts malformed emails that the UI rejects",
+    );
     expect(result.status).toBe(422);
     expect(JSON.stringify(result.body)).toContain("email");
   });
 
   test("TC-API-067 rejects a registration without date of birth", async ({ api }) => {
-    test.fail(true, "DEF-006 the API does not require dob while the UI does");
     const { dob: _dob, ...withoutDob } = buildRegistration();
     const result = await api.tryRegister(withoutDob as never);
 
+    markKnownDefect(
+      result.status,
+      201,
+      "DEF-006 the API does not require dob while the UI does",
+    );
     expect(result.status).toBe(422);
   });
 

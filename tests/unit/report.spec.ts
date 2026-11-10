@@ -18,7 +18,11 @@ const sources = [
 const infrastructure =
   "api=success; site=failure; vibium_hermetic=success; vibium_site=failure; vibium_live=skipped";
 
-function playwrightReport(title: string, outcome: "expected" | "unexpected") {
+function playwrightReport(
+  title: string,
+  outcome: "expected" | "unexpected" | "flaky",
+  expectedStatus: "passed" | "failed" = "passed",
+) {
   return JSON.stringify({
     stats: {},
     suites: [
@@ -29,11 +33,20 @@ function playwrightReport(title: string, outcome: "expected" | "unexpected") {
             title,
             tests: [
               {
-                outcome,
-                expectedStatus: "passed",
-                results: [
-                  { status: outcome === "expected" ? "passed" : "failed", duration: 5 },
-                ],
+                status: outcome,
+                expectedStatus,
+                results:
+                  outcome === "flaky"
+                    ? [
+                        { status: "failed", duration: 5 },
+                        { status: "passed", duration: 7 },
+                      ]
+                    : [
+                        {
+                          status: outcome === "expected" ? expectedStatus : "failed",
+                          duration: 5,
+                        },
+                      ],
               },
             ],
           },
@@ -127,6 +140,21 @@ test("exposes failed or missing hybrid reports instead of hiding them", async ()
     missingReports: sources.slice(1),
   });
   expect(missing.markdown).toContain("reports/hermetic-hybrid.json");
+});
+
+test("reports expected defects and flaky retries using Playwright's JSON shape", async () => {
+  const { report } = await buildReport({
+    [sources[0]]: playwrightReport("Known defect", "expected", "failed"),
+    [sources[1]]: playwrightReport("Flaky retry", "flaky"),
+  });
+
+  expect(report).toMatchObject({
+    totals: { passed: 0, failed: 0, flaky: 1, skipped: 0, detected: 1 },
+    cases: [
+      { status: "detected", durationMs: 5 },
+      { status: "flaky", durationMs: 12 },
+    ],
+  });
 });
 
 test("fails explicitly when no expected reports exist", async () => {

@@ -7,20 +7,24 @@ Aligned with ISTQB Foundation Level (CTFL v4.0) and ISO/IEC/IEEE 29119 terminolo
 - **Test object:** Practice Software Testing "Toolshop" (Angular UI + Laravel REST API), self-hosted with Docker Compose.
 - **Objectives:** find defects early, give confidence in the checkout revenue path, demonstrate
   automation skills with Playwright (UI/API) and Vibium (independent browser automation).
-- **Out of scope:** admin back office, third-party postcode lookup service, load beyond smoke level on public environments.
+- **Out of scope:** admin back office, third-party postcode lookup service, and writes,
+  load or active security scans against public environments.
 
 ## 2. Test levels and types
 
-| Level / type           | Suite                            | Environment           | Gate                     |
-| ---------------------- | -------------------------------- | --------------------- | ------------------------ |
-| Unit (tooling)         | `tests/unit`                     | none                  | blocking                 |
-| Component (UI, mocked) | `tests/mocked`, `tests/hermetic` | deterministic fixture | blocking / informational |
-| API / integration      | `tests/api`                      | self-hosted SUT       | blocking                 |
-| Contract               | `tests/contract`                 | self-hosted SUT       | blocking                 |
-| System (E2E)           | `tests/e2e`                      | self-hosted SUT       | blocking                 |
-| Security               | `tests/security`                 | self-hosted SUT       | blocking                 |
-| Non-functional         | `tests/nonfunctional`            | self-hosted SUT       | blocking                 |
-| Smoke / compatibility  | `tests/vibium`, `tests/hybrid`   | public environments   | informational            |
+| Level / type           | Suite                            | Environment           | Gate                    |
+| ---------------------- | -------------------------------- | --------------------- | ----------------------- |
+| Unit (tooling)         | `tests/unit`                     | none                  | blocking                |
+| Component (UI, mocked) | `tests/mocked`, `tests/hermetic` | deterministic fixture | blocking                |
+| API / integration      | `tests/api`                      | self-hosted SUT       | blocking                |
+| Contract               | `tests/contract`                 | self-hosted SUT       | blocking                |
+| System (E2E / BDD)     | `tests/e2e`, `tests/features`    | self-hosted SUT       | blocking                |
+| Independent browser    | `tests/vibium/local.spec.ts`     | self-hosted SUT       | blocking                |
+| Security               | `tests/security`                 | self-hosted SUT       | blocking                |
+| Non-functional         | `tests/nonfunctional`            | self-hosted SUT       | blocking                |
+| Visual                 | `tests/visual/sut.spec.ts`       | Linux SUT container   | blocking                |
+| Load / DAST / audit    | k6, ZAP, Lighthouse              | separate SUT          | nightly; ZAP is triaged |
+| Smoke / compatibility  | `tests/vibium`, `tests/hybrid`   | public environments   | informational           |
 
 ## 3. Test design techniques
 
@@ -41,6 +45,10 @@ Aligned with ISTQB Foundation Level (CTFL v4.0) and ISO/IEC/IEEE 29119 terminolo
   - Every test case is traced to a requirement (`npm run traceability`).
   - No open defect of severity _Critical_; _Major_ defects have an owner and a decision.
 
+The criteria describe a release decision, not a claim that the third-party
+sample application is production-ready. Open SUT defects in this portfolio do
+not have assigned product owners.
+
 ## 5. Environments and data
 
 - **Blocking:** disposable SUT started in CI (`npm run sut:up`); seeded customer; unique identities per test (`buildRegistration`).
@@ -49,12 +57,21 @@ Aligned with ISTQB Foundation Level (CTFL v4.0) and ISO/IEC/IEEE 29119 terminolo
 ## 6. Defect management
 
 Defects are recorded in the [defect log](defect-log.md) with severity, priority, technique and detecting test.
-Open defects are encoded as `test.fail()` so a fix or a different regression turns the pipeline red.
+For known SUT defects, the expected observed response or violation is asserted
+before `test.fail()` is set. A changed signature or an unrelated earlier error
+therefore fails normally and requires triage.
+
+A flaky test is a test defect: retain its trace, open an issue, assign an owner
+and investigate the root cause. A successful retry is not counted as a clean pass.
 
 ## 7. Metrics reported
 
-Pass rate by suite, flaky tests (passed on retry), detected vs. unexpected failures, open defects by severity,
-requirement coverage ([traceability matrix](traceability-matrix.md)).
+The exit report records passed, detected, failed, flaky and skipped cases, open
+defects by severity and [requirement traceability](traceability-matrix.md).
+Pass rate divides clean passes by executed cases; skipped cases are excluded,
+while detected defects and flaky cases remain in the denominator. Requirement
+execution coverage means at least one linked case executed, not that every
+linked case passed. Missing reports are identified separately.
 
 ## 8. Product risk analysis
 
