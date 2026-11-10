@@ -90,4 +90,8 @@ highest-risk area for the next cycle.
 
 Follow-up: mutation testing was added in v1.1.0. The
 [registration exploration charter](../../charters/registration.md) provides
-a focused local-SUT session for the next cycle.
+a focused local-SUT session for the next cycle. After this cycle, the
+exact-birthday boundary cases from roadmap item RM-01 (TC-API-068, TC-API-069)
+found [DEF-007](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19):
+the API rejects customers on their 18th birthday. Registration now holds four
+of the seven open defects; the figures above describe the v1.0 cycle only.
