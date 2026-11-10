@@ -18,6 +18,21 @@ test management and evidence organized using ISTQB terminology.
 Writes, load and security scans run **only against a disposable loopback SUT**.
 Public-site checks are read-only and informational, not the regression gate.
 
+<a href="https://carlosg-g.github.io/Toolshop-Hybrid-Automation/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dashboard-dark.png">
+    <img alt="Live quality dashboard: all gates passed, 218 passed, 0 failed, 7 known-defect observations" src="docs/assets/dashboard-light.png">
+  </picture>
+</a>
+
+### Reviewer quick tour
+
+| If you have… | Look at                                                                                                                                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 minute     | The [live dashboard](https://carlosg-g.github.io/Toolshop-Hybrid-Automation/) and the [latest CI run](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml)                   |
+| 5 minutes    | [Test plan](docs/test-management/test-plan.md), [defect log](docs/test-management/defect-log.md) and the [defect issues](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues?q=label%3Adefect) |
+| 15 minutes   | [BDD features](tests/features), [API contract tests](tests/contract), [hybrid Playwright + Vibium flow](tests/hybrid) and the [CI pipeline](.github/workflows/ci.yml)                                     |
+
 ![Playwright searches and adds an item in the hermetic mock fixture](docs/assets/hermetic-demo.gif)
 
 _The animation is a real Playwright execution against the local mocked fixture;
