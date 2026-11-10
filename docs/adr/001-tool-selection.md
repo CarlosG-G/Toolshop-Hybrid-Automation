@@ -25,7 +25,8 @@ store, so automated runs must not create persistent customer or order data.
   Linux runner grants user namespaces only to Vibium's installed Chrome binary,
   retaining Chrome's sandbox without changing the global AppArmor policy.
 - Vibium visibility assertions use its bounded native wait and surface
-  timeouts instead of checking only the first rendered state.
+  timeouts instead of checking only the first rendered state. SUT smokes use
+  an explicit desktop viewport so the responsive navigation is expanded.
 - Vibium MCP may expose browser controls to a separately configured AI client;
   CI does not invoke an LLM. The current CLI's `check` command operates on
   checkboxes, not natural-language assertions, and does not provide a `run`

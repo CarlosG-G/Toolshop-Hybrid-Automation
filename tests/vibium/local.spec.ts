@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { browser } from "vibium";
 import { config } from "../../src/config/env.js";
 import { assertVibiumVisible } from "../../src/vibium/semantic.js";
+import { setVibiumDesktopViewport } from "../../src/vibium/session.js";
 import { gates, seededCustomer } from "../support/gates.js";
 
 test("TC-VIB-001 signs in and adds a product to the cart @vibium", async () => {
@@ -10,6 +11,7 @@ test("TC-VIB-001 signs in and adds a product to the cart @vibium", async () => {
   const session = await browser.start({ engine: "chrome", headless: true });
   try {
     const page = await session.page();
+    await setVibiumDesktopViewport(page);
     await page.go(`${config.siteUrl}/auth/login`);
     await page.find('[data-test="email"]').fill(seededCustomer.email);
     await page.find('[data-test="password"]').fill(seededCustomer.password);
@@ -36,6 +38,7 @@ test("TC-VIB-002 shows required-field errors on an empty sign-in @vibium", async
   const session = await browser.start({ engine: "chrome", headless: true });
   try {
     const page = await session.page();
+    await setVibiumDesktopViewport(page);
     await page.go(`${config.siteUrl}/auth/login`);
     await page.find('[data-test="login-submit"]').click();
     await assertVibiumVisible(

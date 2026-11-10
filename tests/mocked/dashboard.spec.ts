@@ -41,6 +41,14 @@ async function openDashboard(
   await page.goto("http://127.0.0.1:4173/report-dashboard");
 }
 
+test("provides a self-contained dashboard icon", async ({ page }) => {
+  await openDashboard(page, []);
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "href",
+    /^data:image\/svg\+xml,/,
+  );
+});
+
 test("shows reports not produced separately from skipped cases", async ({ page }) => {
   await openDashboard(page, ["reports/live-ui.json", "reports/vibium.json"]);
 

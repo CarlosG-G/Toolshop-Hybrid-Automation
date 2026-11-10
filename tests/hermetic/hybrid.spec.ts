@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { browser } from "vibium";
 import { assertVibiumVisible } from "../../src/vibium/semantic.js";
+import { setVibiumDesktopViewport } from "../../src/vibium/session.js";
 
 test("Playwright and Vibium exercise the local catalog together", async ({ page }) => {
   test.setTimeout(60_000);
@@ -44,6 +45,29 @@ test("Vibium visibility waits for asynchronous changes and reports timeouts", as
       `setTimeout(() => { document.querySelector('[data-test="delayed-menu"]').hidden = false; }, 500)`,
     );
     await assertVibiumVisible(menu, "account menu", 5_000);
+  } finally {
+    await session.stop();
+  }
+});
+
+test("Vibium desktop viewport exposes a responsive navigation menu", async () => {
+  test.setTimeout(60_000);
+  const session = await browser.start({ engine: "chrome", headless: true });
+  try {
+    const page = await session.page();
+    await page.setViewport({ width: 762, height: 720 });
+    await page.go("http://127.0.0.1:4173/");
+    await page.evaluate(
+      `document.body.insertAdjacentHTML("beforeend", '<style>@media (max-width: 991px) { [data-test="desktop-menu"] { display: none; } }</style><nav data-test="desktop-menu">Account</nav>')`,
+    );
+    const menu = await page.find('[data-test="desktop-menu"]');
+    await expect(assertVibiumVisible(menu, "desktop menu", 300)).rejects.toThrow(
+      'expected "desktop menu" to be visible within 300 ms',
+    );
+
+    await setVibiumDesktopViewport(page);
+    expect(await page.evaluate<number>("window.innerWidth")).toBe(1280);
+    await assertVibiumVisible(menu, "desktop menu", 5_000);
   } finally {
     await session.stop();
   }
