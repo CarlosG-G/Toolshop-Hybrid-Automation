@@ -183,7 +183,10 @@ Writes are restricted to `TOOLSHOP_TARGET=local`; no public demo accounts are mo
 Defects found by these suites are tracked in the [defect log](docs/test-management/defect-log.md);
 their detecting tests use `test.fail()` so the pipeline turns red as soon as behaviour changes.
 
-With Docker Compose available, run the same suite locally:
+With Docker Compose available, run the same suite locally. **Data-loss
+warning:** `sut:up` resets and seeds the SUT database; `sut:down` removes its
+containers and volumes. Use these commands only with a dedicated, disposable
+environment whose data can be removed.
 
 ```bash
 npm run sut:up
@@ -291,9 +294,11 @@ Other workflows run automatically; the nightly ones can also be started from
 - No AI or application secrets are required. Vibium MCP can expose browser
   controls to a separately configured client; CI does not invoke an LLM.
 
-For manual Vibium exploration, follow [the catalog charter](charters/catalog.md)
-or start its MCP server with `npx vibium mcp`. To run the public cross-browser
-checks locally, install Firefox and WebKit with
+Planned work for the next cycle is tracked in the [roadmap](docs/roadmap.md).
+For manual exploration, follow [the catalog charter](charters/catalog.md) or
+the [registration charter](charters/registration.md), which requires a
+disposable local SUT. Vibium's MCP server can be started with `npx vibium mcp`.
+To run the public cross-browser checks locally, install Firefox and WebKit with
 `npx playwright install firefox webkit`, then use `npm run test:cross-browser`.
 
 ## Contributing, security and license

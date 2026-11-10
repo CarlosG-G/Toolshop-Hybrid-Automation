@@ -87,3 +87,7 @@ highest-risk area for the next cycle.
 - Add mutation testing to measure the fault-detection ability of the framework
   utilities, not only their coverage.
 - Extend exploratory charters for registration, where defect density is highest.
+
+Follow-up: mutation testing was added in v1.1.0. The
+[registration exploration charter](../../charters/registration.md) provides
+a focused local-SUT session for the next cycle.

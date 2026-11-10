@@ -84,12 +84,29 @@ test.describe("Registration API @api @writes", () => {
       dob: dobForAge(18, -1),
       valid: true,
     },
-    { id: "TC-API-024", label: "75 years (max)", dob: dobForAge(75, 1), valid: true },
+    {
+      id: "TC-API-024",
+      label: "74 years and 364 days (inside max)",
+      dob: dobForAge(75, 1),
+      valid: true,
+    },
     {
       id: "TC-API-025",
       label: "over 75 years (above max)",
       dob: dobForAge(76, -1),
       valid: false,
+    },
+    {
+      id: "TC-API-068",
+      label: "exactly 18 years old (min)",
+      dob: dobForAge(18),
+      valid: true,
+    },
+    {
+      id: "TC-API-069",
+      label: "exactly 75 years old (max)",
+      dob: dobForAge(75),
+      valid: true,
     },
   ];
   for (const boundary of ageBoundaries.filter((candidate) => candidate.valid)) {
