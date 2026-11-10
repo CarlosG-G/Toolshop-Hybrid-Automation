@@ -1,11 +1,7 @@
-import { execFile } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
+import { parse } from "yaml";
 import { isRecord } from "../../src/reporting/guards.js";
-
-const root = fileURLToPath(new URL("../../", import.meta.url));
-const run = promisify(execFile);
 
 function isStringArray(value: unknown): value is string[] {
   return (
@@ -30,12 +26,9 @@ function angularCommand(value: unknown): string[] {
 }
 
 test("disposable SUT serves optimized Angular with only its local API", async () => {
-  const { stdout } = await run(
-    "docker",
-    ["compose", "-f", "docker/compose.yml", "config", "--format", "json"],
-    { cwd: root },
+  const config: unknown = parse(
+    await readFile(new URL("../../docker/compose.yml", import.meta.url), "utf8"),
   );
-  const config: unknown = JSON.parse(stdout);
   const command = angularCommand(config);
   expect(command.slice(0, 2)).toEqual(["bash", "-ec"]);
   const script = command[2];
