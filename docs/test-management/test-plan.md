@@ -59,6 +59,26 @@ Regression selection is risk-based: every pull request runs all blocking
 suites; the nightly cycle adds the cross-browser matrix, the stable versus
 with-bugs comparison, load, DAST and Lighthouse.
 
+### Non-functional budgets
+
+Budgets were derived from the five successful nightly-quality runs between
+2026-11-09 and 2026-11-11 (25 Lighthouse samples per page). Each Lighthouse
+budget is the largest 0.05 step at least 0.04 below the lowest observed score,
+and no budget was loosened.
+
+| Check                        | Observed range | Previous budget | Budget   |
+| ---------------------------- | -------------- | --------------- | -------- |
+| Lighthouse home performance  | 0.60?0.64      | 0.60            | 0.60     |
+| Lighthouse login performance | 0.74?0.76      | 0.60            | 0.70     |
+| Lighthouse accessibility     | 0.94?0.96      | 0.80            | 0.90     |
+| Lighthouse best practices    | 0.96           | 0.80            | 0.90     |
+| k6 `http_req_duration` p95   | 10.0?16.4 ms   | < 1500 ms       | < 100 ms |
+
+Home performance stays at 0.60 because the observed median already touches it.
+The k6 budget keeps about six times headroom over the worst observed p95 to
+absorb hosted-runner variance. Revisit the budgets when the SUT version or the
+runner image changes.
+
 ## 4. Test environment and data
 
 - **Blocking:** a disposable SUT started on the CI runner (`npm run sut:up`)

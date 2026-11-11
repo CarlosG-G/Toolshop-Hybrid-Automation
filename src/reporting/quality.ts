@@ -155,7 +155,7 @@ export function summarizeLighthouseRun(value: unknown): {
         aggregate.performance !== scores.performance ||
         aggregate.accessibility !== scores.accessibility ||
         aggregate["best-practices"] !== scores["best-practices"] ||
-        page.passed !== passesLighthouseBudgets(scores)
+        page.passed !== passesLighthouseBudgets(page.page, scores)
       ) {
         throw new Error("Lighthouse summary: inconsistent sample results.");
       }

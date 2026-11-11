@@ -19,6 +19,12 @@
   from 70.14 % to 80.22 %; the Stryker break threshold moves from 65 % to 70 % (roadmap item
   RM-05).
 
+### Changed
+
+- Lighthouse budgets are per page and derived from five nightly runs: accessibility and best
+  practices 0.90, performance 0.70 on login and 0.60 on home. The k6 p95 threshold drops from
+  1500 ms to 100 ms (roadmap item RM-09).
+
 ## 1.1.0
 
 ### Added

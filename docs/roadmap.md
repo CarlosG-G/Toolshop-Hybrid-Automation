@@ -61,12 +61,20 @@ up from 70.14%. The break threshold is now 70%. Most remaining survivors are in
 [`quality.ts`](../src/reporting/quality.ts) or are equivalent mutants, such as
 the validator cache or OpenAPI formats that Ajv treats as annotations.
 
+RM-09 result: five successful nightly-quality runs (25 Lighthouse samples per
+page) set the new budgets. Lighthouse budgets are now per page: accessibility
+and best practices rise from 0.80 to 0.90, login performance from 0.60 to 0.70,
+and home performance stays at 0.60 because its median already reaches it. The
+k6 p95 threshold drops from 1500 ms to 100 ms against an observed 10.0?16.4 ms.
+The derivation is in the
+[test plan](test-management/test-plan.md#non-functional-budgets).
+
 ## Phase 3: long-term
 
 | ID    | Improvement                                                                 | Why                                                                    | Acceptance criteria                                                                               | Effort | Status  |
 | ----- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------ | ------- |
 | RM-08 | Report DEF-001 to DEF-007 upstream to the Practice Software Testing project | Closes the loop with the product owner instead of only logging locally | Upstream issues linked from each local defect issue; status mirrored in the defect log            | S      | planned |
-| RM-09 | Tighten Lighthouse and k6 budgets using the nightly-quality history         | Current budgets were set before enough trend data existed              | Budgets derived from recorded runs and documented in the test plan                                | M      | planned |
+| RM-09 | Tighten Lighthouse and k6 budgets using the nightly-quality history         | Current budgets were set before enough trend data existed              | Budgets derived from recorded runs and documented in the test plan                                | M      | done    |
 | RM-10 | Broaden contract coverage to every endpoint used by the UI flows            | Contract risk score is 6; uncovered endpoints can drift silently       | Coverage list in the traceability matrix; schema validation for each endpoint used by e2e and BDD | L      | planned |
 
 ## Out of scope

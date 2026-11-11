@@ -1,19 +1,21 @@
 import { isRecord } from "./guards.js";
 
+const categoriesToCheck = ["performance", "accessibility", "best-practices"] as const;
+
+export type LighthouseCategory = (typeof categoriesToCheck)[number];
+export type LighthouseScores = Record<LighthouseCategory, number>;
+
+// Derived from five nightly runs (25 samples per page); see docs/test-management/test-plan.md.
 export const lighthouseBudgets = {
-  performance: 0.6,
-  accessibility: 0.8,
-  "best-practices": 0.8,
-} as const;
+  home: { performance: 0.6, accessibility: 0.9, "best-practices": 0.9 },
+  login: { performance: 0.7, accessibility: 0.9, "best-practices": 0.9 },
+} as const satisfies Record<string, LighthouseScores>;
 export const lighthouseSampleCount = 5;
 export const lighthouseCollectionFile = "reports/lighthouse-collection.json";
 export const lighthousePages = [
   { page: "home", path: "/" },
   { page: "login", path: "/auth/login" },
 ] as const;
-const categoriesToCheck = ["performance", "accessibility", "best-practices"] as const;
-
-export type LighthouseScores = { [K in keyof typeof lighthouseBudgets]: number };
 
 export interface LighthousePage {
   page: string;
@@ -27,8 +29,12 @@ export interface LighthouseSampledPage extends LighthousePage {
   samples: LighthouseScores[];
 }
 
-export function passesLighthouseBudgets(scores: LighthouseScores): boolean {
-  return categoriesToCheck.every((key) => scores[key] >= lighthouseBudgets[key]);
+export function passesLighthouseBudgets(page: string, scores: LighthouseScores): boolean {
+  if (!Object.hasOwn(lighthouseBudgets, page)) {
+    throw new Error(`Lighthouse ${page}: unknown page.`);
+  }
+  const budget = lighthouseBudgets[page as keyof typeof lighthouseBudgets];
+  return categoriesToCheck.every((key) => scores[key] >= budget[key]);
 }
 
 export function aggregateLighthouseScores(samples: LighthouseScores[]): LighthouseScores {
@@ -94,7 +100,7 @@ export function summarizeLighthouse(page: string, value: unknown): LighthousePag
   if (value.runtimeError) throw new Error(`Lighthouse ${page}: runtime error reported.`);
   const url = loopbackUrl(page, value.finalDisplayedUrl);
   const categories = value.categories;
-  const score = (name: keyof typeof lighthouseBudgets): number => {
+  const score = (name: LighthouseCategory): number => {
     const category = categories[name];
     if (
       !isRecord(category) ||
@@ -116,7 +122,7 @@ export function summarizeLighthouse(page: string, value: unknown): LighthousePag
     page,
     url: url.href,
     scores,
-    passed: passesLighthouseBudgets(scores),
+    passed: passesLighthouseBudgets(page, scores),
   };
 }
 
@@ -135,5 +141,5 @@ export function summarizeLighthouseSamples(
 
   const samples = results.map((result) => result.scores);
   const scores = aggregateLighthouseScores(samples);
-  return { page, url, scores, passed: passesLighthouseBudgets(scores), samples };
+  return { page, url, scores, passed: passesLighthouseBudgets(page, scores), samples };
 }
