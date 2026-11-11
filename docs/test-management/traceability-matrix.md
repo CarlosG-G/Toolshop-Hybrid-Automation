@@ -34,7 +34,7 @@ Requirements: **9** · Test cases: **123** · Defects: **11**
 
 ## Contract coverage of UI flow endpoints
 
-Operations called by the e2e and BDD flows: **17** ? Schema-validated: **15**
+Operations called by the e2e and BDD flows: **17** · Schema-validated: **15**
 
 | Operation                           | Contract tests | Note                                                                 |
 | ----------------------------------- | -------------- | -------------------------------------------------------------------- |
@@ -44,7 +44,7 @@ Operations called by the e2e and BDD flows: **17** ? Schema-validated: **15**
 | `GET /products/search`              | TC-CON-008     | Used by the catalog search page object.                              |
 | `GET /products/{productId}`         | TC-CON-005     |                                                                      |
 | `GET /products/{productId}/related` | TC-CON-009     |                                                                      |
-| `GET /product-specs/names`          | ?              | The provider documents 200 without a response schema.                |
+| `GET /product-specs/names`          | —              | The provider documents 200 without a response schema.                |
 | `POST /users/register`              | TC-CON-011     |                                                                      |
 | `POST /users/login`                 | TC-CON-006     |                                                                      |
 | `GET /users/me`                     | TC-CON-007     |                                                                      |
@@ -54,4 +54,4 @@ Operations called by the e2e and BDD flows: **17** ? Schema-validated: **15**
 | `DELETE /carts/{cartId}`            | TC-CON-012     | 204 without a body; the status code is checked against the contract. |
 | `POST /payment/check`               | TC-CON-010     |                                                                      |
 | `POST /invoices`                    | TC-CON-013     | DEF-008: undocumented 201 status and a null number field.            |
-| `GET /postcode-lookup`              | ?              | Out of scope: proxies a third-party postcode service.                |
+| `GET /postcode-lookup`              | —              | Out of scope: proxies a third-party postcode service.                |

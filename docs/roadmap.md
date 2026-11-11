@@ -71,7 +71,7 @@ RM-09 result: five successful nightly-quality runs (25 Lighthouse samples per
 page) set the new budgets. Lighthouse budgets are now per page: accessibility
 and best practices rise from 0.80 to 0.90, login performance from 0.60 to 0.70,
 and home performance stays at 0.60 because its median already reaches it. The
-k6 p95 threshold drops from 1500 ms to 100 ms against an observed 10.0?16.4 ms.
+k6 p95 threshold drops from 1500 ms to 100 ms against an observed 10.0–16.4 ms.
 The derivation is in the
 [test plan](test-management/test-plan.md#non-functional-budgets).
 
