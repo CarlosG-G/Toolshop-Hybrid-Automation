@@ -51,6 +51,7 @@ forces triage. Full reports are in the [defect log](docs/test-management/defect-
 | DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name          | Major    | [TC-A11Y-002, TC-A11Y-003](tests/nonfunctional/accessibility.spec.ts) | axe `button-name` on `.btn-outline-secondary`      |
 | DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth       | Minor    | [TC-API-067](tests/api/robustness.spec.ts)                            | HTTP 201 instead of 422                            |
 | DEF-007 | [#19](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19) | Registration rejects customers on their 18th birthday | Minor    | [TC-API-068](tests/api/auth.spec.ts)                                  | HTTP 422 with the `dob` age error                  |
+| DEF-008 | [#26](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26) | POST /invoices drifts from the provider contract      | Minor    | [TC-CON-013](tests/contract/provider-contract.spec.ts)                | Undocumented HTTP 201 and a null number            |
 
 ![Playwright searches and adds an item in the hermetic mock fixture](docs/assets/hermetic-demo.gif)
 

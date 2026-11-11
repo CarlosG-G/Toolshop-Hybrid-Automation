@@ -7,6 +7,7 @@ import {
   collectDefectDetails,
   collectTestIds,
   trace,
+  contractCoverageProblems,
 } from "../../scripts/build-traceability.js";
 
 const requirements = [
@@ -85,4 +86,21 @@ test("traceability collects scenario outline IDs from Gherkin features", () => {
     unlinkSync(feature);
     rmdirSync(directory);
   }
+});
+
+test("contract coverage entries need a known test or a justification", () => {
+  expect(
+    contractCoverageProblems(
+      [
+        { operation: "GET /brands", tests: ["TC-CON-003"] },
+        { operation: "GET /postcode-lookup", tests: [], note: "Third-party proxy." },
+        { operation: "GET /orphan", tests: [] },
+        { operation: "POST /invoices", tests: ["TC-CON-013", "TC-CON-999"] },
+      ],
+      ["TC-CON-003", "TC-CON-013"],
+    ),
+  ).toEqual([
+    "Contract operation GET /orphan has neither tests nor a note",
+    "Contract operation POST /invoices references unknown test TC-CON-999",
+  ]);
 });
