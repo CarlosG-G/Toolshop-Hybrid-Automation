@@ -93,5 +93,8 @@ Follow-up: mutation testing was added in v1.1.0. The
 a focused local-SUT session for the next cycle. After this cycle, the
 exact-birthday boundary cases from roadmap item RM-01 (TC-API-068, TC-API-069)
 found [DEF-007](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19):
-the API rejects customers on their 18th birthday. Registration now holds four
-of the seven open defects; the figures above describe the v1.0 cycle only.
+the API rejects customers on their 18th birthday. Contract coverage of every UI
+flow endpoint (RM-10) found [DEF-008](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26), and the
+[registration charter session](sessions/2026-11-11-registration.md) (RM-02)
+found DEF-009 to DEF-011. Registration now holds seven of the eleven logged
+defects; the figures above describe the v1.0 cycle only.

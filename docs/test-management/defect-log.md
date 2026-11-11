@@ -7,16 +7,19 @@ Known SUT defects use `test.fail()` only after checking the observed response or
 violation. A changed signature or unrelated earlier error fails normally and
 requires triage. DEF-003 is a separate, informational public-environment finding.
 
-| ID      | Issue                                                                    | Title                                                 | Severity | Priority | Detected by | Status                 |
-| ------- | ------------------------------------------------------------------------ | ----------------------------------------------------- | -------- | -------- | ----------- | ---------------------- |
-| DEF-001 | [#10](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/10) | Registration accepts customers older than 75 years    | Major    | Medium   | TC-API-025  | Open                   |
-| DEF-002 | [#11](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/11) | Payment check accepts undocumented payment methods    | Minor    | Low      | TC-API-042  | Open                   |
-| DEF-003 | [#12](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/12) | Public stable API returns 500 for an unknown product  | Minor    | Low      | TC-API-003  | Open (public env only) |
-| DEF-004 | [#13](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/13) | Registration API accepts a malformed email            | Major    | High     | TC-API-062  | Open                   |
-| DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name          | Major    | Medium   | TC-A11Y-002 | Open                   |
-| DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth       | Minor    | Medium   | TC-API-067  | Open                   |
-| DEF-007 | [#19](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19) | Registration rejects customers on their 18th birthday | Minor    | Low      | TC-API-068  | Open                   |
-| DEF-008 | [#26](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26) | POST /invoices drifts from the provider contract      | Minor    | Low      | TC-CON-013  | Open                   |
+| ID      | Issue                                                                    | Title                                                            | Severity | Priority | Detected by | Status                 |
+| ------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------- | -------- | -------- | ----------- | ---------------------- |
+| DEF-001 | [#10](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/10) | Registration accepts customers older than 75 years               | Major    | Medium   | TC-API-025  | Open                   |
+| DEF-002 | [#11](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/11) | Payment check accepts undocumented payment methods               | Minor    | Low      | TC-API-042  | Open                   |
+| DEF-003 | [#12](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/12) | Public stable API returns 500 for an unknown product             | Minor    | Low      | TC-API-003  | Open (public env only) |
+| DEF-004 | [#13](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/13) | Registration API accepts a malformed email                       | Major    | High     | TC-API-062  | Open                   |
+| DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name                     | Major    | Medium   | TC-A11Y-002 | Open                   |
+| DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth                  | Minor    | Medium   | TC-API-067  | Open                   |
+| DEF-007 | [#19](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19) | Registration rejects customers on their 18th birthday            | Minor    | Low      | TC-API-068  | Open                   |
+| DEF-008 | [#26](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26) | POST /invoices drifts from the provider contract                 | Minor    | Low      | TC-CON-013  | Open                   |
+| DEF-009 | [#29](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/29) | Registration API creates a second account for a padded email     | Major    | Medium   | TC-API-070  | Open                   |
+| DEF-010 | [#28](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/28) | Password error states a 6-character minimum; the form requires 8 | Minor    | Low      | TC-E2E-025  | Open                   |
+| DEF-011 | [#30](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/30) | House number error is not linked to its input                    | Minor    | Low      | TC-E2E-026  | Open                   |
 
 ## DEF-001 — Registration accepts customers older than 75 years
 
@@ -111,3 +114,39 @@ requires triage. DEF-003 is a separate, informational public-environment finding
   unexpected response or fail to deserialize the invoice.
 - **Evidence:** TC-CON-013 in `tests/contract/provider-contract.spec.ts`, frozen with `markKnownDefect`.
 - **Technique:** contract testing of every endpoint the UI flows call (RM-10).
+
+## DEF-009 ? Registration API creates a second account for a padded email
+
+- **Environment:** self-hosted SUT (`TOOLSHOP_TARGET=local`), `POST /users/register`.
+- **Requirement:** REQ-REG-01; OpenAPI `UserRequest.email` declares `format: email`.
+- **Steps:** register customer A, then register a new identity with the email `" " + A.email + " "`.
+- **Expected:** HTTP 409 (duplicate) or 422 (invalid email).
+- **Actual:** HTTP 201; the email is stored with the spaces. The padded email signs in with the
+  second password, and `POST /users/forgot-password` accepts it. The UI rejects the padded email,
+  so only API clients are affected.
+- **Related:** probably the same root cause as DEF-004 (no server-side email format validation);
+  the impact here is two accounts for one mailbox.
+- **Evidence:** [registration session notes](sessions/2026-11-11-registration.md); TC-API-070.
+- **Technique:** exploratory testing (registration charter), equivalence partitioning.
+
+## DEF-010 ? Password error states a 6-character minimum; the form requires 8
+
+- **Environment:** self-hosted SUT, `/auth/register` in Chromium.
+- **Requirement:** REQ-REG-01; OpenAPI `UserRequest.password.minLength: 8`.
+- **Steps:** fill the form with valid data and the 7-character password `Ab1!xyz`; submit.
+- **Expected:** the error states the real rule (at least 8 characters).
+- **Actual:** "Password must be minimal 6 characters long."; no request is sent. An 8-character
+  password registers.
+- **Evidence:** [registration session notes](sessions/2026-11-11-registration.md); TC-E2E-025.
+- **Technique:** boundary value analysis on the password length.
+
+## DEF-011 ? House number error is not linked to its input
+
+- **Environment:** self-hosted SUT, `/auth/register` in Chromium.
+- **Requirement:** REQ-REG-01; WCAG 2.2 SC 1.3.1 and 3.3.1.
+- **Steps:** submit the empty registration form; inspect the house number input and its error.
+- **Expected:** `aria-invalid="true"` and `aria-describedby="house_number-error"`, as on the
+  other eleven fields.
+- **Actual:** neither attribute is set, and the error element has an empty `id`.
+- **Evidence:** [registration session notes](sessions/2026-11-11-registration.md); TC-E2E-026.
+- **Technique:** exploratory accessibility check of error identification.

@@ -24,6 +24,11 @@
 - DEF-008 ([#26](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26)):
   `POST /invoices` returns an undocumented 201 and a null number field; TC-CON-013 freezes the
   signature.
+- Registration charter session notes (`docs/test-management/sessions/`, roadmap item RM-02).
+  The session found DEF-009 ([#29](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/29)), a padded email that bypasses the duplicate check;
+  DEF-010 ([#28](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/28)), a password error that states the wrong minimum length; and DEF-011
+  ([#30](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/30)), a house number error not linked to its input. TC-API-070, TC-E2E-025 and
+  TC-E2E-026 freeze their signatures.
 
 ### Changed
 

@@ -46,7 +46,9 @@ unexpected account creation.
    using fixed dates; consider leap years and the tester's time zone.
 
 The [defect log](../docs/test-management/defect-log.md) tracks the known
-registration findings as DEF-001, DEF-004, DEF-006 and DEF-007. Compare the
+registration findings as DEF-001, DEF-004, DEF-006, DEF-007 and DEF-009 to
+DEF-011. The [first session](../docs/test-management/sessions/2026-11-11-registration.md)
+records the inputs already explored. Compare the
 observed failure with the recorded signature before reporting a new defect.
 
 ## Automated comparison
