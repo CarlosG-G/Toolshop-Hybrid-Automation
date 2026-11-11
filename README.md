@@ -291,9 +291,11 @@ Other workflows run automatically; the nightly ones can also be started from
 - Linux cross-browser suites and SUT visual checks use a digest-pinned
   Playwright image with browsers and system libraries preinstalled. Regular
   Chromium jobs use the hosted runner's browser libraries.
-- k6 load uses up to 50 VUs with p95 below 1.5 s, error rate below 1% and checks
-  above 99%. Lighthouse desktop minimum scores are 0.60 performance, 0.80
-  accessibility and 0.80 best practices for home and login. Each page is audited
+- k6 load uses up to 50 VUs with p95 below 100 ms, error rate below 1% and checks
+  above 99%. Lighthouse desktop minimum scores are 0.90 accessibility and 0.90
+  best practices on home and login, with 0.60 performance on home and 0.70 on
+  login. The budgets were derived from recorded nightly runs; see the
+  [test plan](docs/test-management/test-plan.md#non-functional-budgets). Each page is audited
   five times sequentially: the performance gate uses the median and the other
   gates use their lowest observed score. All samples and their JSON/HTML reports
   are retained. This follows Lighthouse's guidance on

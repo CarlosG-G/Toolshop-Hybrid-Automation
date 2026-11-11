@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  lighthouseBudgets,
   lighthouseSampleCount,
   summarizeLighthouse,
   summarizeLighthouseSamples,
@@ -26,11 +27,33 @@ function sampleResults(performances: number[], url = "http://127.0.0.1:4200/") {
   return performances.map((performance) => result(performance, 0.9, 0.95, url));
 }
 
+const loginUrl = "http://127.0.0.1:4200/auth/login";
+
 test("Lighthouse budgets include the exact threshold and reject lower scores", () => {
-  expect(summarizeLighthouse("home", result(0.6, 0.8, 0.8)).passed).toBe(true);
-  expect(summarizeLighthouse("home", result(0.599, 0.8, 0.8)).passed).toBe(false);
-  expect(summarizeLighthouse("login", result(0.9, 0.799, 0.9)).passed).toBe(false);
-  expect(summarizeLighthouse("login", result(0.9, 0.9, 0.799)).passed).toBe(false);
+  expect(summarizeLighthouse("home", result(0.6, 0.9, 0.9)).passed).toBe(true);
+  expect(summarizeLighthouse("home", result(0.599, 0.9, 0.9)).passed).toBe(false);
+  expect(summarizeLighthouse("home", result(0.6, 0.899, 0.9)).passed).toBe(false);
+  expect(summarizeLighthouse("home", result(0.6, 0.9, 0.899)).passed).toBe(false);
+  expect(summarizeLighthouse("login", result(0.7, 0.9, 0.9, loginUrl)).passed).toBe(true);
+  expect(summarizeLighthouse("login", result(0.699, 0.9, 0.9, loginUrl)).passed).toBe(
+    false,
+  );
+  expect(summarizeLighthouse("login", result(0.9, 0.899, 0.9, loginUrl)).passed).toBe(
+    false,
+  );
+  expect(summarizeLighthouse("login", result(0.9, 0.9, 0.899, loginUrl)).passed).toBe(
+    false,
+  );
+});
+
+test("Lighthouse budgets are defined per page", () => {
+  expect(lighthouseBudgets).toEqual({
+    home: { performance: 0.6, accessibility: 0.9, "best-practices": 0.9 },
+    login: { performance: 0.7, accessibility: 0.9, "best-practices": 0.9 },
+  });
+  expect(() => summarizeLighthouse("unknown", result(0.9, 0.9, 0.9))).toThrow(
+    "unknown page",
+  );
 });
 
 test("Lighthouse reports missing, invalid or failed audits explicitly", () => {
@@ -84,7 +107,7 @@ test("Lighthouse uses the worst accessibility and best-practice samples", () => 
   expect(
     summarizeLighthouseSamples(
       "home",
-      Array.from({ length: 5 }, () => result(0.6, 0.8, 0.8)),
+      Array.from({ length: 5 }, () => result(0.6, 0.9, 0.9)),
     ).passed,
   ).toBe(true);
 });

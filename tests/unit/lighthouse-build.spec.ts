@@ -19,6 +19,7 @@ async function writeSamples(
   performances: number[],
   omit?: { page: string; sample: number },
   loginPort = 4200,
+  loginOffset = 0.15,
 ) {
   await mkdir(join(directory, "reports"));
   for (const { page, path } of lighthousePages) {
@@ -30,8 +31,13 @@ async function writeSamples(
         JSON.stringify({
           finalDisplayedUrl: `http://127.0.0.1:${port}${path}`,
           categories: {
-            performance: { score: performances[index] },
-            accessibility: { score: 0.9 - index * 0.01 },
+            performance: {
+              score:
+                page === "login"
+                  ? Math.round((performances[index] + loginOffset) * 100) / 100
+                  : performances[index],
+            },
+            accessibility: { score: 0.95 - index * 0.01 },
             "best-practices": { score: 0.95 },
           },
         }),
@@ -105,7 +111,10 @@ test("Lighthouse report retains every sample and documents aggregation", async (
     );
     expect(summary).toMatchObject({
       passed: true,
-      budgets: { performance: 0.6, accessibility: 0.8, "best-practices": 0.8 },
+      budgets: {
+        home: { performance: 0.6, accessibility: 0.9, "best-practices": 0.9 },
+        login: { performance: 0.7, accessibility: 0.9, "best-practices": 0.9 },
+      },
       pages: [
         {
           page: "home",
@@ -115,7 +124,7 @@ test("Lighthouse report retains every sample and documents aggregation", async (
             expect.objectContaining({ performance: 0.65 }),
           ]),
         },
-        { page: "login", scores: { performance: 0.62 }, samples: expect.any(Array) },
+        { page: "login", scores: { performance: 0.77 }, samples: expect.any(Array) },
       ],
     });
     const step = await readFile(join(directory, "step.md"), "utf8");
@@ -129,7 +138,7 @@ test("Lighthouse report retains every sample and documents aggregation", async (
 test("Lighthouse report fails when the majority is below budget", async () => {
   const directory = await mkdtemp(join(tmpdir(), "toolshop-lighthouse-"));
   try {
-    await writeSamples(directory, [0.59, 0.59, 0.59, 0.7, 0.8]);
+    await writeSamples(directory, [0.59, 0.59, 0.59, 0.7, 0.8], undefined, 4200, 0);
     await expect(buildReport(directory)).rejects.toMatchObject({ code: 1 });
     const summary: unknown = JSON.parse(
       await readFile(join(directory, "reports", "lighthouse-summary.json"), "utf8"),

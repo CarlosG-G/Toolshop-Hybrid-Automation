@@ -22,7 +22,8 @@ export const options = {
       }),
   thresholds: {
     http_req_failed: ["rate<0.01"],
-    http_req_duration: ["p(95)<1500"],
+    // Nightly p95 was 10-16 ms across five runs; 100 ms keeps about 6x headroom.
+    http_req_duration: ["p(95)<100"],
     checks: ["rate>0.99"],
   },
 };
