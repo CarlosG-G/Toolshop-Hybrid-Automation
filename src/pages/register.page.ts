@@ -16,6 +16,22 @@ export const requiredRegisterFields = [
 ] as const;
 export type RegisterField = (typeof requiredRegisterFields)[number];
 
+export interface RegistrationForm {
+  first_name: string;
+  last_name: string;
+  dob: string;
+  phone: string;
+  email: string;
+  password: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    postal_code: string;
+  };
+}
+
 const REGISTER_TIMEOUT_MS = 20_000;
 
 export class RegisterPage {
@@ -41,33 +57,23 @@ export class RegisterPage {
     return this.page.locator('[data-test="register-error"]');
   }
 
-  async register(user: {
-    first_name: string;
-    last_name: string;
-    dob: string;
-    phone: string;
-    email: string;
-    password: string;
-    address: {
-      street: string;
-      city: string;
-      state: string;
-      country: string;
-      postal_code: string;
-    };
-  }): Promise<Response> {
-    await this.page.locator('[data-test="first-name"]').fill(user.first_name);
-    await this.page.locator('[data-test="last-name"]').fill(user.last_name);
-    await this.page.locator('[data-test="dob"]').fill(user.dob);
-    await this.page.locator('[data-test="country"]').selectOption(user.address.country);
-    await this.page.locator('[data-test="postal_code"]').fill(user.address.postal_code);
-    await this.page.locator('[data-test="house_number"]').fill("1");
-    await this.page.locator('[data-test="street"]').fill(user.address.street);
-    await this.page.locator('[data-test="city"]').fill(user.address.city);
-    await this.page.locator('[data-test="state"]').fill(user.address.state);
-    await this.page.locator('[data-test="phone"]').fill(user.phone);
-    await this.page.locator('[data-test="email"]').fill(user.email);
-    await this.page.locator('[data-test="password"]').fill(user.password);
+  /** Ids of fields whose error is not exposed through aria-invalid and aria-describedby. */
+  async fieldsWithUnlinkedErrors(): Promise<RegisterField[]> {
+    const unlinked: RegisterField[] = [];
+    for (const field of requiredRegisterFields) {
+      const input = this.page.locator(`[data-test="${field}"]`);
+      const errorId = await this.fieldError(field).getAttribute("id");
+      const describedBy = (await input.getAttribute("aria-describedby")) ?? "";
+      const invalid = await input.getAttribute("aria-invalid");
+      if (invalid !== "true" || !errorId || !describedBy.split(/\s+/).includes(errorId)) {
+        unlinked.push(field);
+      }
+    }
+    return unlinked;
+  }
+
+  async register(user: RegistrationForm): Promise<Response> {
+    await this.fill(user);
 
     const [response] = await Promise.all([
       this.page.waitForResponse(
@@ -80,5 +86,20 @@ export class RegisterPage {
     ]);
 
     return response;
+  }
+
+  async fill(user: RegistrationForm): Promise<void> {
+    await this.page.locator('[data-test="first-name"]').fill(user.first_name);
+    await this.page.locator('[data-test="last-name"]').fill(user.last_name);
+    await this.page.locator('[data-test="dob"]').fill(user.dob);
+    await this.page.locator('[data-test="country"]').selectOption(user.address.country);
+    await this.page.locator('[data-test="postal_code"]').fill(user.address.postal_code);
+    await this.page.locator('[data-test="house_number"]').fill("1");
+    await this.page.locator('[data-test="street"]').fill(user.address.street);
+    await this.page.locator('[data-test="city"]').fill(user.address.city);
+    await this.page.locator('[data-test="state"]').fill(user.address.state);
+    await this.page.locator('[data-test="phone"]').fill(user.phone);
+    await this.page.locator('[data-test="email"]').fill(user.email);
+    await this.page.locator('[data-test="password"]').fill(user.password);
   }
 }

@@ -4,6 +4,7 @@ import { buildRegistration } from "../../src/data/factories.js";
 import { LoginPage } from "../../src/pages/login.page.js";
 import { RegisterPage, requiredRegisterFields } from "../../src/pages/register.page.js";
 import { gates } from "../support/gates.js";
+import { markKnownDefect } from "../support/known-defect.js";
 
 test.beforeEach(() => {
   gates.writableSut();
@@ -76,5 +77,47 @@ test.describe("Registration form validation @e2e @negative", () => {
     expect(response.status()).toBeLessThan(500);
     await expect(register.registerError()).toBeVisible();
     await expect(page).toHaveURL(/\/auth\/register$/);
+  });
+
+  test("TC-E2E-025 explains the real password length rule", async ({ page }) => {
+    const register = new RegisterPage(page);
+    await register.open(config.siteUrl);
+    let registerRequests = 0;
+    page.on("request", (request) => {
+      if (request.method() === "POST" && request.url().endsWith("/users/register")) {
+        registerRequests += 1;
+      }
+    });
+
+    await register.fill(buildRegistration({ password: "Ab1!xyz" }));
+    await register.submit();
+
+    await expect(register.fieldError("password")).toBeVisible();
+    expect(registerRequests).toBe(0);
+    const message = (await register.fieldError("password").innerText()).trim();
+    markKnownDefect(
+      message,
+      "Password must be minimal 6 characters long.",
+      "DEF-010 the form rejects a 7-character password with a minimum-6 message",
+    );
+    expect(message).toContain("8");
+  });
+
+  test("TC-E2E-026 links every field error to its input for assistive technology", async ({
+    page,
+  }) => {
+    const register = new RegisterPage(page);
+    await register.open(config.siteUrl);
+
+    await register.submit();
+    await expect(register.fieldError("house_number")).toBeVisible();
+
+    const unlinked = await register.fieldsWithUnlinkedErrors();
+    markKnownDefect(
+      unlinked,
+      ["house_number"],
+      "DEF-011 the house number error is not linked to its input",
+    );
+    expect(unlinked).toEqual([]);
   });
 });

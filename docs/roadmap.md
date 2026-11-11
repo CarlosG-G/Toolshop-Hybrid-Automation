@@ -13,15 +13,21 @@ Status values: `planned`, `in progress`, `done`.
 
 ## Phase 1: quick wins
 
-| ID    | Improvement                                                                                            | Why                                                                                                  | Acceptance criteria                                                                                                                                           | Effort | Status      |
-| ----- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
-| RM-01 | Add exact-birthday boundary tests for age 18 and 75 in [`auth.spec.ts`](../tests/api/auth.spec.ts)     | Current BVA uses 18 years minus one day and 75 years plus one day; the exact boundaries are untested | New TC IDs cover the 18th and 75th birthdays; the expected result follows the documented rule or is marked as a known defect; traceability matrix regenerated | S      | done        |
-| RM-02 | Run the [registration charter](../charters/registration.md) against the local SUT                      | Registration holds four of the seven open defects                                                    | Session notes and evidence stored; new findings logged as `defect` issues or turned into automated checks                                                     | S      | in progress |
-| RM-03 | Publish a reviewer-friendly summary of all known defects with links to their frozen failure signatures | Makes the value of the suite visible in under a minute                                               | README quick tour links each DEF ID to its issue and test                                                                                                     | S      | done        |
+| ID    | Improvement                                                                                            | Why                                                                                                  | Acceptance criteria                                                                                                                                           | Effort | Status |
+| ----- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| RM-01 | Add exact-birthday boundary tests for age 18 and 75 in [`auth.spec.ts`](../tests/api/auth.spec.ts)     | Current BVA uses 18 years minus one day and 75 years plus one day; the exact boundaries are untested | New TC IDs cover the 18th and 75th birthdays; the expected result follows the documented rule or is marked as a known defect; traceability matrix regenerated | S      | done   |
+| RM-02 | Run the [registration charter](../charters/registration.md) against the local SUT                      | Registration holds four of the seven open defects                                                    | Session notes and evidence stored; new findings logged as `defect` issues or turned into automated checks                                                     | S      | done   |
+| RM-03 | Publish a reviewer-friendly summary of all known defects with links to their frozen failure signatures | Makes the value of the suite visible in under a minute                                               | README quick tour links each DEF ID to its issue and test                                                                                                     | S      | done   |
 
 RM-01 result: TC-API-068 and TC-API-069 cover the exact 18th and 75th birthdays.
 TC-API-068 found [DEF-007](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19):
 the API rejects customers on their 18th birthday.
+
+RM-02 result: the [session notes](test-management/sessions/2026-11-11-registration.md)
+record 30 inputs across the UI and the API. DEF-001, DEF-004, DEF-006 and DEF-007
+reproduced with their recorded signatures. Three new defects were logged and
+automated: DEF-009 ([#29](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/29), TC-API-070), DEF-010
+([#28](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/28), TC-E2E-025) and DEF-011 ([#30](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/30), TC-E2E-026).
 
 ## Phase 2: mid-term
 
@@ -73,7 +79,7 @@ The derivation is in the
 
 | ID    | Improvement                                                                 | Why                                                                    | Acceptance criteria                                                                               | Effort | Status  |
 | ----- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------ | ------- |
-| RM-08 | Report DEF-001 to DEF-007 upstream to the Practice Software Testing project | Closes the loop with the product owner instead of only logging locally | Upstream issues linked from each local defect issue; status mirrored in the defect log            | S      | planned |
+| RM-08 | Report DEF-001 to DEF-011 upstream to the Practice Software Testing project | Closes the loop with the product owner instead of only logging locally | Upstream issues linked from each local defect issue; status mirrored in the defect log            | S      | planned |
 | RM-09 | Tighten Lighthouse and k6 budgets using the nightly-quality history         | Current budgets were set before enough trend data existed              | Budgets derived from recorded runs and documented in the test plan                                | M      | done    |
 | RM-10 | Broaden contract coverage to every endpoint used by the UI flows            | Contract risk score is 6; uncovered endpoints can drift silently       | Coverage list in the traceability matrix; schema validation for each endpoint used by e2e and BDD | L      | done    |
 

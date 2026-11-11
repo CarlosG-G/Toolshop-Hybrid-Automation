@@ -56,6 +56,24 @@ test.describe("API robustness and input validation @api @negative", () => {
     expect(result.status).toBe(422);
   });
 
+  test("TC-API-070 refuses a second account for a whitespace-padded email", async ({
+    api,
+  }) => {
+    const owner = buildRegistration();
+    expect((await api.tryRegister(owner)).status).toBe(201);
+
+    const result = await api.tryRegister(
+      buildRegistration({ email: ` ${owner.email} ` }),
+    );
+
+    markKnownDefect(
+      result.status,
+      201,
+      "DEF-009 a whitespace-padded email bypasses the duplicate-email check",
+    );
+    expect([409, 422]).toContain(result.status);
+  });
+
   test("TC-API-063 never fails with a server error on oversized input", async ({
     api,
   }) => {
