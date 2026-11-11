@@ -14,8 +14,8 @@
 
 | Input                               | Expected | Observed                                  | Result            |
 | ----------------------------------- | -------- | ----------------------------------------- | ----------------- |
-| Valid customer                      | 201      | 201; sign-in with the new account ? 200   | Pass              |
-| Same email again                    | 4xx      | 409 "A customer with this email ? exists" | Pass              |
+| Valid customer                      | 201      | 201; sign-in with the new account → 200   | Pass              |
+| Same email again                    | 4xx      | 409 "A customer with this email … exists" | Pass              |
 | Same email in upper case            | 4xx      | 409                                       | Pass              |
 | Same email padded with spaces (API) | 409/422  | 201; the padded account can sign in       | **DEF-009** (new) |
 | Same email padded with spaces (UI)  | Rejected | "Email format is invalid", no request     | Pass              |
@@ -54,8 +54,8 @@
 | --------------------------------- | ------------- | -------- | -------- | --------------- |
 | 18 years + 1 day ago (2008-11-10) | Adult         | 201      | 201      | Pass            |
 | Exactly 18 years ago (2008-11-11) | 18th birthday | 201      | 422      | DEF-007 (known) |
-| 18 years ? 1 day ago (2008-11-12) | Minor         | 422      | 422      | Pass            |
-| 75 years ? 1 day ago (1951-11-12) | Within range  | 201      | 201      | Pass            |
+| 18 years − 1 day ago (2008-11-12) | Minor         | 422      | 422      | Pass            |
+| 75 years − 1 day ago (1951-11-12) | Within range  | 201      | 201      | Pass            |
 | Exactly 75 years ago (1951-11-11) | 75th birthday | 201      | 201      | Pass            |
 | 75 years + 1 day ago (1951-11-10) | Too old       | 422      | 201      | DEF-001 (known) |
 | `2004-02-29` (leap day)           | Adult         | 201      | 201      | Pass            |

@@ -168,13 +168,13 @@ function render(
       : [
           "## Contract coverage of UI flow endpoints",
           "",
-          `Operations called by the e2e and BDD flows: **${contract.length}** ? Schema-validated: **${contract.filter((entry) => entry.tests.length > 0).length}**`,
+          `Operations called by the e2e and BDD flows: **${contract.length}** · Schema-validated: **${contract.filter((entry) => entry.tests.length > 0).length}**`,
           "",
           "| Operation | Contract tests | Note |",
           "| --- | --- | --- |",
           ...contract.map(
             (entry) =>
-              `| \`${entry.operation}\` | ${entry.tests.join(", ") || "?"} | ${entry.note ?? ""} |`,
+              `| \`${entry.operation}\` | ${entry.tests.join(", ") || "—"} | ${entry.note ?? ""} |`,
           ),
           "",
         ]),

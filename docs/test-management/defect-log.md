@@ -100,10 +100,10 @@ requires triage. DEF-003 is a separate, informational public-environment finding
   job `SUT / api`, Playwright trace of TC-API-068.
 - **Technique:** boundary value analysis (exact 18- and 75-year boundaries, roadmap item RM-01).
 
-## DEF-008 ? POST /invoices drifts from the provider contract
+## DEF-008 — POST /invoices drifts from the provider contract
 
 - **Environment:** self-hosted SUT (`TOOLSHOP_TARGET=local`), Toolshop OpenAPI 3.2.0 served by the provider.
-- **Requirement:** REQ-API-01 ? the REST API conforms to its OpenAPI contract.
+- **Requirement:** REQ-API-01 — the REST API conforms to its OpenAPI contract.
 - **Steps:** register and log in a customer, create a cart with one product, then `POST /invoices`
   with a valid billing address and `cash-on-delivery` payment.
 - **Expected:** a status code the operation documents (200, 401, 404, 405 or 422) and a body valid
@@ -115,7 +115,7 @@ requires triage. DEF-003 is a separate, informational public-environment finding
 - **Evidence:** TC-CON-013 in `tests/contract/provider-contract.spec.ts`, frozen with `markKnownDefect`.
 - **Technique:** contract testing of every endpoint the UI flows call (RM-10).
 
-## DEF-009 ? Registration API creates a second account for a padded email
+## DEF-009 — Registration API creates a second account for a padded email
 
 - **Environment:** self-hosted SUT (`TOOLSHOP_TARGET=local`), `POST /users/register`.
 - **Requirement:** REQ-REG-01; OpenAPI `UserRequest.email` declares `format: email`.
@@ -129,7 +129,7 @@ requires triage. DEF-003 is a separate, informational public-environment finding
 - **Evidence:** [registration session notes](sessions/2026-11-11-registration.md); TC-API-070.
 - **Technique:** exploratory testing (registration charter), equivalence partitioning.
 
-## DEF-010 ? Password error states a 6-character minimum; the form requires 8
+## DEF-010 — Password error states a 6-character minimum; the form requires 8
 
 - **Environment:** self-hosted SUT, `/auth/register` in Chromium.
 - **Requirement:** REQ-REG-01; OpenAPI `UserRequest.password.minLength: 8`.
@@ -140,7 +140,7 @@ requires triage. DEF-003 is a separate, informational public-environment finding
 - **Evidence:** [registration session notes](sessions/2026-11-11-registration.md); TC-E2E-025.
 - **Technique:** boundary value analysis on the password length.
 
-## DEF-011 ? House number error is not linked to its input
+## DEF-011 — House number error is not linked to its input
 
 - **Environment:** self-hosted SUT, `/auth/register` in Chromium.
 - **Requirement:** REQ-REG-01; WCAG 2.2 SC 1.3.1 and 3.3.1.

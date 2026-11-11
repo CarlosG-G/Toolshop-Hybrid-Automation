@@ -68,11 +68,11 @@ and no budget was loosened.
 
 | Check                        | Observed range | Previous budget | Budget   |
 | ---------------------------- | -------------- | --------------- | -------- |
-| Lighthouse home performance  | 0.60?0.64      | 0.60            | 0.60     |
-| Lighthouse login performance | 0.74?0.76      | 0.60            | 0.70     |
-| Lighthouse accessibility     | 0.94?0.96      | 0.80            | 0.90     |
+| Lighthouse home performance  | 0.60–0.64      | 0.60            | 0.60     |
+| Lighthouse login performance | 0.74–0.76      | 0.60            | 0.70     |
+| Lighthouse accessibility     | 0.94–0.96      | 0.80            | 0.90     |
 | Lighthouse best practices    | 0.96           | 0.80            | 0.90     |
-| k6 `http_req_duration` p95   | 10.0?16.4 ms   | < 1500 ms       | < 100 ms |
+| k6 `http_req_duration` p95   | 10.0–16.4 ms   | < 1500 ms       | < 100 ms |
 
 Home performance stays at 0.60 because the observed median already touches it.
 The k6 budget keeps about six times headroom over the worst observed p95 to
