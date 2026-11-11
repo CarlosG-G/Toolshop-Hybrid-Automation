@@ -75,7 +75,16 @@ The derivation is in the
 | ----- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------ | ------- |
 | RM-08 | Report DEF-001 to DEF-007 upstream to the Practice Software Testing project | Closes the loop with the product owner instead of only logging locally | Upstream issues linked from each local defect issue; status mirrored in the defect log            | S      | planned |
 | RM-09 | Tighten Lighthouse and k6 budgets using the nightly-quality history         | Current budgets were set before enough trend data existed              | Budgets derived from recorded runs and documented in the test plan                                | M      | done    |
-| RM-10 | Broaden contract coverage to every endpoint used by the UI flows            | Contract risk score is 6; uncovered endpoints can drift silently       | Coverage list in the traceability matrix; schema validation for each endpoint used by e2e and BDD | L      | planned |
+| RM-10 | Broaden contract coverage to every endpoint used by the UI flows            | Contract risk score is 6; uncovered endpoints can drift silently       | Coverage list in the traceability matrix; schema validation for each endpoint used by e2e and BDD | L      | done    |
+
+RM-10 result: the endpoints were captured from the nginx access log of a local
+run of the e2e and BDD projects. The new
+[contract coverage list](test-management/traceability-matrix.md#contract-coverage-of-ui-flow-endpoints)
+maps all 17 operations: 15 are schema-validated by TC-CON-002 to TC-CON-013.
+`GET /product-specs/names` documents no response schema and `GET /postcode-lookup`
+proxies a third-party service, so both are listed with a justification instead.
+TC-CON-013 found DEF-008 ([#26](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26)):
+`POST /invoices` returns an undocumented 201 and a null number field.
 
 ## Out of scope
 

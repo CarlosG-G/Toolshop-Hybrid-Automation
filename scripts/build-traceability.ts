@@ -10,6 +10,13 @@ interface Requirement {
   tests: string[];
 }
 
+/** An API operation called by the UI flows and the contract tests that validate it. */
+export interface ContractOperation {
+  operation: string;
+  tests: string[];
+  note?: string;
+}
+
 const ID = /\b(?:TC-[A-Z0-9]+-\d+|WB-\d+)\b/g;
 const RANGE = /\b(TC-[A-Z0-9]+)-(\d+)\.\.(\d+)\b/g;
 const DEFECT =
@@ -106,11 +113,27 @@ export function trace(requirements: Requirement[], ids: string[]): Trace {
   };
 }
 
+/** Lists contract coverage entries that are unjustified or reference unknown tests. */
+export function contractCoverageProblems(
+  contract: ContractOperation[],
+  ids: string[],
+): string[] {
+  return contract.flatMap((entry) => [
+    ...(entry.tests.length === 0 && !entry.note
+      ? [`Contract operation ${entry.operation} has neither tests nor a note`]
+      : []),
+    ...entry.tests
+      .filter((id) => !ids.includes(id))
+      .map((id) => `Contract operation ${entry.operation} references unknown test ${id}`),
+  ]);
+}
+
 function render(
   requirements: Requirement[],
   result: Trace,
   defects: Defect[],
   ids: string[],
+  contract: ContractOperation[],
 ): string {
   const rows = requirements.map((r) => {
     const tests = result.matrix.get(r.id)!;
@@ -140,6 +163,21 @@ function render(
     "| --- | --- | --- | --- |",
     ...defectRows,
     "",
+    ...(contract.length === 0
+      ? []
+      : [
+          "## Contract coverage of UI flow endpoints",
+          "",
+          `Operations called by the e2e and BDD flows: **${contract.length}** ? Schema-validated: **${contract.filter((entry) => entry.tests.length > 0).length}**`,
+          "",
+          "| Operation | Contract tests | Note |",
+          "| --- | --- | --- |",
+          ...contract.map(
+            (entry) =>
+              `| \`${entry.operation}\` | ${entry.tests.join(", ") || "?"} | ${entry.note ?? ""} |`,
+          ),
+          "",
+        ]),
   ].join("\n");
 }
 
@@ -147,11 +185,9 @@ if (
   import.meta.url === `file://${process.argv[1]?.replaceAll("\\", "/")}` ||
   process.argv[1]?.endsWith("build-traceability.ts")
 ) {
-  const requirements = (
-    JSON.parse(readFileSync("docs/test-management/requirements.json", "utf8")) as {
-      requirements: Requirement[];
-    }
-  ).requirements;
+  const { requirements, contractCoverage = [] } = JSON.parse(
+    readFileSync("docs/test-management/requirements.json", "utf8"),
+  ) as { requirements: Requirement[]; contractCoverage?: ContractOperation[] };
   const ids = collectTestIds("tests");
   const defects = collectDefectDetails(
     readFileSync("docs/test-management/defect-log.md", "utf8"),
@@ -159,10 +195,13 @@ if (
   const result = trace(requirements, ids);
 
   const matrixPath = "docs/test-management/traceability-matrix.md";
-  const markdown = await format(render(requirements, result, defects, ids), {
-    ...(await resolveConfig(matrixPath)),
-    filepath: matrixPath,
-  });
+  const markdown = await format(
+    render(requirements, result, defects, ids, contractCoverage),
+    {
+      ...(await resolveConfig(matrixPath)),
+      filepath: matrixPath,
+    },
+  );
   writeFileSync(matrixPath, markdown);
   writeFileSync(
     "reports/traceability.json",
@@ -194,6 +233,7 @@ if (
     ...result.untraced.map((id) => `Test ${id} is not linked to any requirement`),
     ...result.uncovered.map((id) => `Requirement ${id} has no tests`),
     ...result.ghostTests.map((entry) => `Pattern without tests: ${entry}`),
+    ...contractCoverageProblems(contractCoverage, ids),
     ...defects.flatMap((defect) =>
       defect.tests
         .filter((id) => !ids.includes(id))

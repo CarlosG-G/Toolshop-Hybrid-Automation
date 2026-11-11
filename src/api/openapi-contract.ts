@@ -64,6 +64,17 @@ export class OpenApiContract {
     );
   }
 
+  /** Status codes the provider documents for an operation, in document order. */
+  documentedStatuses(method: HttpMethod, path: string): number[] {
+    const responses = this.document.paths[path]?.[method]?.responses;
+    if (!responses) {
+      throw new Error(`Contract has no ${method.toUpperCase()} ${path} operation.`);
+    }
+    return Object.keys(responses)
+      .filter((status) => /^\d{3}$/.test(status))
+      .map(Number);
+  }
+
   /** Returns human-readable violations; an empty array means the body honours the contract. */
   violations(
     method: HttpMethod,

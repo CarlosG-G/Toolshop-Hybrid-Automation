@@ -18,6 +18,12 @@
 - Unit tests for history parsing and the OpenAPI contract validator raise the mutation score
   from 70.14 % to 80.22 %; the Stryker break threshold moves from 65 % to 70 % (roadmap item
   RM-05).
+- TC-CON-008 to TC-CON-013 validate every API operation the e2e and BDD flows call against
+  the provider OpenAPI contract, and the traceability matrix lists the contract coverage of each
+  operation (roadmap item RM-10).
+- DEF-008 ([#26](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26)):
+  `POST /invoices` returns an undocumented 201 and a null number field; TC-CON-013 freezes the
+  signature.
 
 ### Changed
 

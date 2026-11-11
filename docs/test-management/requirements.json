@@ -88,5 +88,81 @@
       "risk": "Medium",
       "tests": ["TC-A11Y-004"]
     }
+  ],
+  "contractCoverage": [
+    {
+      "operation": "GET /brands",
+      "tests": ["TC-CON-003"]
+    },
+    {
+      "operation": "GET /categories/tree",
+      "tests": ["TC-CON-004"]
+    },
+    {
+      "operation": "GET /products",
+      "tests": ["TC-CON-002"],
+      "note": "Catalog listing; also used by the API fixtures."
+    },
+    {
+      "operation": "GET /products/search",
+      "tests": ["TC-CON-008"],
+      "note": "Used by the catalog search page object."
+    },
+    {
+      "operation": "GET /products/{productId}",
+      "tests": ["TC-CON-005"]
+    },
+    {
+      "operation": "GET /products/{productId}/related",
+      "tests": ["TC-CON-009"]
+    },
+    {
+      "operation": "GET /product-specs/names",
+      "tests": [],
+      "note": "The provider documents 200 without a response schema."
+    },
+    {
+      "operation": "POST /users/register",
+      "tests": ["TC-CON-011"]
+    },
+    {
+      "operation": "POST /users/login",
+      "tests": ["TC-CON-006"]
+    },
+    {
+      "operation": "GET /users/me",
+      "tests": ["TC-CON-007"]
+    },
+    {
+      "operation": "POST /carts",
+      "tests": ["TC-CON-012"]
+    },
+    {
+      "operation": "POST /carts/{id}",
+      "tests": ["TC-CON-012"]
+    },
+    {
+      "operation": "GET /carts/{cartId}",
+      "tests": ["TC-CON-012"]
+    },
+    {
+      "operation": "DELETE /carts/{cartId}",
+      "tests": ["TC-CON-012"],
+      "note": "204 without a body; the status code is checked against the contract."
+    },
+    {
+      "operation": "POST /payment/check",
+      "tests": ["TC-CON-010"]
+    },
+    {
+      "operation": "POST /invoices",
+      "tests": ["TC-CON-013"],
+      "note": "DEF-008: undocumented 201 status and a null number field."
+    },
+    {
+      "operation": "GET /postcode-lookup",
+      "tests": [],
+      "note": "Out of scope: proxies a third-party postcode service."
+    }
   ]
 }

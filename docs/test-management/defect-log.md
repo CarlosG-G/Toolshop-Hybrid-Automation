@@ -16,6 +16,7 @@ requires triage. DEF-003 is a separate, informational public-environment finding
 | DEF-005 | [#14](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/14) | Icon-only buttons without an accessible name          | Major    | Medium   | TC-A11Y-002 | Open                   |
 | DEF-006 | [#15](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/15) | Registration API does not require date of birth       | Minor    | Medium   | TC-API-067  | Open                   |
 | DEF-007 | [#19](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/19) | Registration rejects customers on their 18th birthday | Minor    | Low      | TC-API-068  | Open                   |
+| DEF-008 | [#26](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues/26) | POST /invoices drifts from the provider contract      | Minor    | Low      | TC-CON-013  | Open                   |
 
 ## DEF-001 — Registration accepts customers older than 75 years
 
@@ -95,3 +96,18 @@ requires triage. DEF-003 is a separate, informational public-environment finding
 - **Evidence:** [CI run 42847127751](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/runs/42847127751),
   job `SUT / api`, Playwright trace of TC-API-068.
 - **Technique:** boundary value analysis (exact 18- and 75-year boundaries, roadmap item RM-01).
+
+## DEF-008 ? POST /invoices drifts from the provider contract
+
+- **Environment:** self-hosted SUT (`TOOLSHOP_TARGET=local`), Toolshop OpenAPI 3.2.0 served by the provider.
+- **Requirement:** REQ-API-01 ? the REST API conforms to its OpenAPI contract.
+- **Steps:** register and log in a customer, create a cart with one product, then `POST /invoices`
+  with a valid billing address and `cash-on-delivery` payment.
+- **Expected:** a status code the operation documents (200, 401, 404, 405 or 422) and a body valid
+  against the invoice schema.
+- **Actual:** HTTP 201, which the operation does not document, and
+  `additional_discount_percentage: null` where the schema declares `number`.
+- **Impact:** clients generated from the specification may treat a successful checkout as an
+  unexpected response or fail to deserialize the invoice.
+- **Evidence:** TC-CON-013 in `tests/contract/provider-contract.spec.ts`, frozen with `markKnownDefect`.
+- **Technique:** contract testing of every endpoint the UI flows call (RM-10).

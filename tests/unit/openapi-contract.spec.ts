@@ -167,4 +167,22 @@ test.describe("OpenAPI contract edge cases @unit @contract", () => {
       "http://api.test/docs?api-docs.json",
     ]);
   });
+
+  test("TC-CON-U11 lists documented status codes and ignores non-numeric keys", () => {
+    const statuses = OpenApiContract.fromDocument({
+      openapi: "3.1.0",
+      paths: {
+        "/invoices": {
+          post: { responses: { "200": {}, "422": {}, default: {}, "4XX": {} } },
+        },
+      },
+    });
+    expect(statuses.documentedStatuses("post", "/invoices")).toEqual([200, 422]);
+    expect(() => statuses.documentedStatuses("get", "/invoices")).toThrow(
+      "Contract has no GET /invoices operation.",
+    );
+    expect(() => statuses.documentedStatuses("post", "/missing")).toThrow(
+      "Contract has no POST /missing operation.",
+    );
+  });
 });
