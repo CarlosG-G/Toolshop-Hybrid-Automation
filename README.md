@@ -1,30 +1,29 @@
 # Toolshop Hybrid Automation
 
-[![CI](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml)
-[![Nightly quality](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml)
-[![CodeQL](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml)
-[![Nightly comparison](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/CarlosG-G/Toolshop-Hybrid-Automation/badge)](https://scorecard.dev/viewer/?uri=github.com/CarlosG-G/Toolshop-Hybrid-Automation)
+**An executable quality gate for an online shop.** This portfolio checks
+[Practice Software Testing Toolshop](https://practicesoftwaretesting.com) across
+its API, UI, contract and hybrid browser flows, then makes the test result and
+evidence easy to inspect.
 
-**A risk-based test automation portfolio:** Playwright, Vibium and BDD against
-[Practice Software Testing Toolshop](https://practicesoftwaretesting.com), with
-test management and evidence organized using ISTQB terminology.
+**11 documented defect findings** connect real behavior to reproducible tests,
+GitHub issues and CI evidence. The dashboard separates unexpected failures
+from known-defect observations, flaky results and skipped cases.
 
-[Explore the dashboard](https://carlosg-g.github.io/Toolshop-Hybrid-Automation/) |
+[Live dashboard](https://carlosg-g.github.io/Toolshop-Hybrid-Automation/) |
+[Featured defect: 18th-birthday registration](docs/case-study-def-007.md) |
 [Test strategy](docs/test-management/test-strategy.md) |
 [Test plan](docs/test-management/test-plan.md) |
-[Completion report](docs/test-management/test-completion-report.md) |
-[Requirement traceability](docs/test-management/traceability-matrix.md) |
 [Defect log](docs/test-management/defect-log.md)
 
-Writes, load and security scans run **only against a disposable loopback SUT**.
-Public-site checks are read-only and informational, not the regression gate.
+Writes, load and security scans run **only against a disposable local SUT**.
+Public-site checks are read-only and informational. A green run means the
+configured automation gates passed for that test environment; it is not a
+production release approval.
 
 <a href="https://carlosg-g.github.io/Toolshop-Hybrid-Automation/">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dashboard-dark.png">
-    <img alt="Live quality dashboard: all gates passed, 218 passed, 0 failed, 7 known-defect observations" src="docs/assets/dashboard-light.png">
+    <img alt="Quality dashboard with a run verdict, test totals and defect observations" src="docs/assets/dashboard-light.png">
   </picture>
 </a>
 
@@ -37,7 +36,7 @@ states. Named helpers and methods include JSDoc for editor hover documentation.
 
 | If you have… | Look at                                                                                                                                                                                                   |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 minute     | The [live dashboard](https://carlosg-g.github.io/Toolshop-Hybrid-Automation/) and the [latest CI run](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml)                   |
+| 1 minute     | The [live dashboard](https://carlosg-g.github.io/Toolshop-Hybrid-Automation/) and the [18th-birthday defect case study](docs/case-study-def-007.md)                                                       |
 | 5 minutes    | [Test plan](docs/test-management/test-plan.md), [defect log](docs/test-management/defect-log.md) and the [defect issues](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/issues?q=label%3Adefect) |
 | 15 minutes   | [BDD features](tests/features), [API contract tests](tests/contract), [hybrid Playwright + Vibium flow](tests/hybrid) and the [CI pipeline](.github/workflows/ci.yml)                                     |
 
@@ -65,6 +64,32 @@ forces triage. Full reports are in the [defect log](docs/test-management/defect-
 
 _The animation is a real Playwright execution against the local mocked fixture;
 it is not a recording of the live Toolshop SUT._
+
+## My contribution
+
+I designed and built this portfolio to show how quality work connects from
+business risk to an actionable test result. The repository demonstrates:
+
+- Turning requirements into risk-based test cases, boundary checks and defect
+  records with traceable evidence.
+- Automating API, UI, contract, accessibility, performance and hybrid browser
+  checks with Playwright, Vibium and BDD.
+- Isolating state-changing and non-functional checks from the public demo site.
+- Publishing CI reports, traces and a dashboard that distinguish known defects
+  from unexpected failures.
+
+The [featured case study](docs/case-study-def-007.md) walks through one finding
+from requirement to automated evidence. The [demo script](docs/recruiter-demo-script.md)
+is ready to record; it is not a substitute for a recorded walkthrough.
+
+## Project health
+
+[![CI](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml)
+[![Nightly quality](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly-quality.yml)
+[![CodeQL](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/codeql.yml)
+[![Nightly comparison](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/nightly.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/CarlosG-G/Toolshop-Hybrid-Automation/badge)](https://scorecard.dev/viewer/?uri=github.com/CarlosG-G/Toolshop-Hybrid-Automation)
 
 ## Architecture
 
