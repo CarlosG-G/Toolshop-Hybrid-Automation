@@ -14,6 +14,23 @@ npm run test:hermetic          # no network, no Docker
 Requires Node.js 22.19 or later. Docker is only needed for the disposable SUT
 (`npm run sut:up`). See the [README](README.md) for every suite.
 
+For a guided code walkthrough, read the Spanish
+[project guide](docs/guia-del-proyecto.md). Keep responsibilities separate:
+tests define expected outcomes, page objects own UI interactions, API clients own
+HTTP details, and reporting code interprets evidence.
+
+## Documenting code
+
+- Add concise JSDoc to named functions, methods, constructors and accessors,
+  including private helpers. Describe purpose and non-obvious behavior, not each line.
+- Explain relevant waits, side effects, return values and failure conditions so
+  editor hovers are useful at call sites. Keep code documentation in English.
+- Prefer self-explanatory names over inline narration. Anonymous test/event
+  callbacks belong to their surrounding scenario and do not need boilerplate docs.
+- Update the project guide when adding a responsibility or executable script.
+- Measure performance changes against equivalent inputs and outputs. Fewer
+  allocations or browser calls do not by themselves establish a faster full CI run.
+
 ## Branches and commits
 
 - Branch from `main`: `feat/…`, `fix/…`, `test/…`, `docs/…`, `ci/…`.

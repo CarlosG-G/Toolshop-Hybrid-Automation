@@ -1,5 +1,7 @@
+/** Normalized outcomes; `detected` means an expected defect observation, not a pass. */
 export type TestStatus = "passed" | "detected" | "failed" | "flaky" | "skipped";
 
+/** Counts test observations by outcome, not unique test IDs or defects. */
 export interface TestTotals {
   passed: number;
   detected: number;
@@ -8,6 +10,7 @@ export interface TestTotals {
   skipped: number;
 }
 
+/** One project/target test observation, with retry durations combined. */
 export interface ReportCase {
   title: string;
   id: string | null;
@@ -19,6 +22,7 @@ export interface ReportCase {
   target: string;
 }
 
+/** Shared report contract consumed by management summaries and the dashboard. */
 export interface UnifiedReport {
   generatedAt: string;
   runId: string | null;
@@ -31,6 +35,7 @@ export interface UnifiedReport {
   cases: ReportCase[];
 }
 
+/** Recorded defect metadata and the test IDs that provide its evidence. */
 export interface Defect {
   id: string;
   title: string;
@@ -41,6 +46,7 @@ export interface Defect {
   issue?: string;
 }
 
+/** Requirement with concrete test IDs expanded from its configured patterns. */
 export interface RequirementDetail {
   id: string;
   title: string;
@@ -49,16 +55,20 @@ export interface RequirementDetail {
   defects: string[];
 }
 
+/** Requirement and defect records needed to calculate management coverage. */
 export interface TraceabilityData {
   requirementDetails: RequirementDetail[];
   defectDetails: Defect[];
 }
 
+/** Accepts arrays containing only strings, including an empty array. */
 const isStringList = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === "string");
+/** Accepts absent report metadata represented explicitly as null. */
 const isNullableString = (value: unknown): value is string | null =>
   value === null || typeof value === "string";
 
+/** Checks that every outcome has a nonnegative integer count. */
 export function isTestTotals(value: unknown): value is TestTotals {
   const statuses = ["passed", "detected", "failed", "flaky", "skipped"];
   return (
@@ -72,6 +82,7 @@ export function isTestTotals(value: unknown): value is TestTotals {
   );
 }
 
+/** Validates the shared report shape before downstream code reads its fields. */
 export function isUnifiedReport(value: unknown): value is UnifiedReport {
   if (!isRecord(value) || !isTestTotals(value.totals) || !Array.isArray(value.cases)) {
     return false;
@@ -101,6 +112,7 @@ export function isUnifiedReport(value: unknown): value is UnifiedReport {
   );
 }
 
+/** Validates requirement and defect records without assuming their JSON source is safe. */
 export function isTraceabilityData(value: unknown): value is TraceabilityData {
   if (
     !isRecord(value) ||

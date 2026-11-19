@@ -1,3 +1,4 @@
+/** Collects sequential desktop audits against loopback only, invalidating stale completion evidence. */
 import { spawnSync } from "node:child_process";
 import { mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -10,6 +11,7 @@ import {
 } from "../src/reporting/lighthouse.js";
 
 mkdirSync("reports", { recursive: true });
+/** Persists collection state; completion is recorded only after every output is nonempty. */
 const writeCollection = (complete: boolean) =>
   writeFileSync(
     lighthouseCollectionFile,

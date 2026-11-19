@@ -1,3 +1,4 @@
+/** Builds the static dashboard from validated reports and optional nightly/history evidence. */
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { buildExitReport } from "../src/reporting/exit-report.js";
 import { parseHistory, updateHistory } from "../src/reporting/history.js";
@@ -9,6 +10,7 @@ import {
   summarizeZap,
 } from "../src/reporting/quality.js";
 
+/** Returns null only for missing files; malformed JSON and other I/O failures remain errors. */
 async function optionalJson(path: string): Promise<unknown | null> {
   try {
     const parsed: unknown = JSON.parse(await readFile(path, "utf8"));

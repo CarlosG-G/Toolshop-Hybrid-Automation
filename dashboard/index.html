@@ -288,6 +288,7 @@
       const STATUSES = ["passed", "detected", "failed", "flaky", "skipped"];
       const PRIORITY = { failed: 0, flaky: 1, detected: 2, passed: 3, skipped: 4 };
 
+      /** Builds DOM nodes with text children instead of interpreting report values as HTML. */
       function el(tag, props = {}, ...children) {
         const node = document.createElement(tag);
         for (const [key, value] of Object.entries(props)) {
@@ -302,20 +303,25 @@
         }
         return node;
       }
+      /** Converts a display value to a lowercase token for status-related CSS classes. */
       function slug(value) {
         return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-");
       }
+      /** Creates a status badge whose color comes from its normalized CSS class. */
       function pill(value) {
         return el("span", { class: `pill pill-${slug(value)}` }, value);
       }
+      /** Computes a percentage, rendering an empty population as zero rather than NaN. */
       function percent(value, total) {
         return total > 0 ? (value / total) * 100 : 0;
       }
+      /** Formats valid date strings in explicit UTC; preserves invalid values as diagnostic text. */
       function formatDate(value) {
         const date = new Date(value);
         if (typeof value !== "string" || Number.isNaN(date.getTime())) return String(value);
         return `${date.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })} UTC`;
       }
+      /** Builds a proportional outcome bar with a screen-reader label describing its counts. */
       function distributionBar(counts, large = false) {
         const total = STATUSES.reduce((sum, key) => sum + (Number(counts[key]) || 0), 0);
         const label = STATUSES.filter((key) => counts[key]).map((key) => `${counts[key]} ${key}`).join(", ") || "no results";
@@ -329,6 +335,7 @@
         }
         return bar;
       }
+      /** Creates an accessible score ring, clamping its visual fill to the 0-100 range. */
       function ring(value, label, color) {
         const node = el("div", { class: "ring", role: "img", "aria-label": `${label}: ${Math.round(value)}` },
           el("span", {}, Math.round(value), el("small", {}, label.toUpperCase())));
@@ -336,12 +343,15 @@
         if (color) node.style.setProperty("--color", color);
         return node;
       }
+      /** Maps a 0-100 display score to a visual tone; does not decide CI budget acceptance. */
       function scoreColor(score) {
         return score >= 90 ? "var(--passed)" : score >= 50 ? "var(--flaky)" : "var(--failed)";
       }
+      /** Creates a labeled metric tile with an optional semantic color class. */
       function tile(label, value, tone) {
         return el("div", { class: "tile" }, el("span", { class: "label" }, label), el("span", { class: tone ? `value ${tone}` : "value" }, value));
       }
+      /** Builds a table with scoped column headers and optional right-aligned numeric columns. */
       function table(headers, rows, numeric = []) {
         const head = el("tr");
         headers.forEach((title, index) => head.append(el("th", { scope: "col", class: numeric.includes(index) ? "num" : undefined }, title)));
@@ -353,6 +363,7 @@
         }
         return el("table", {}, el("thead", {}, head), body);
       }
+      /** Replaces a report container with a table or its explicit no-data message. */
       function renderTable(selector, headers, rows, empty, numeric) {
         const container = document.querySelector(selector);
         if (rows.length === 0) {
@@ -361,6 +372,7 @@
           container.replaceChildren(table(headers, rows, numeric));
         }
       }
+      /** Reveals HTTP(S) evidence links, displaying a diagnostic instead of accepting unsafe URLs. */
       function safeLink(selector, value) {
         if (typeof value !== "string") return;
         try {
@@ -374,6 +386,7 @@
           document.querySelector(selector).hidden = false;
         }
       }
+      /** Renders outcome counts, pass rate and infrastructure state without hiding known defects. */
       function renderSummary(report) {
         const totals = report.totals;
         const rate = report.management && report.management.passRatePercent !== null && report.management.passRatePercent !== undefined
@@ -419,6 +432,7 @@
             : el("li", { class: "chip" }, part));
         }
       }
+      /** Renders optional requirement coverage, recorded defects and results grouped by test type. */
       function renderManagement(management) {
         if (!management) return;
         const rate = management.passRatePercent === null ? "not available" : `${management.passRatePercent}%`;
@@ -457,6 +471,7 @@
             .map(([type, counts]) => [el("strong", {}, type), distributionBar(counts), counts.passed, counts.detected, counts.failed, counts.flaky, counts.skipped]),
           "No individual test cases were reported.", [2, 3, 4, 5, 6]);
       }
+      /** Displays available nightly evidence separately from current-run results and CI thresholds. */
       function renderQuality(quality) {
         if (!quality) return;
         const nightly = quality.nightly;
@@ -509,6 +524,7 @@
           container.replaceChildren(...pages, el("p", { class: "caption" }, lines.join(" · ")));
         }
       }
+      /** Orders run snapshots chronologically for the trend chart and newest-first for the table. */
       function renderHistory(history) {
         if (!history) return;
         if (!history.hasPrevious) document.querySelector("#history-note").textContent = "No previous published history was available for this build.";
@@ -531,12 +547,14 @@
             run.totals.failed, run.totals.flaky,
             `${run.executionCoverage.covered}/${run.executionCoverage.total}`]), "No runs recorded.", [2, 3, 4]);
       }
+      /** Prioritizes failures and wires text/type/target/status filters over individual observations. */
       function renderCases(cases) {
         const sorted = cases
           .map((testCase, index) => ({ testCase, index }))
           .sort((a, b) => (PRIORITY[a.testCase.status] ?? 5) - (PRIORITY[b.testCase.status] ?? 5) || a.index - b.index)
           .map(({ testCase }) => testCase);
         const filters = { text: "", type: "", target: "", status: "" };
+        /** Populates a dropdown with sorted unique values from the reported cases. */
         const fill = (selector, values) => {
           const select = document.querySelector(selector);
           for (const value of [...new Set(values)].sort()) select.append(el("option", { value }, value));
@@ -555,6 +573,7 @@
           return button;
         });
         statusGroup.replaceChildren(...buttons);
+        /** Reapplies all active filters and replaces the evidence table and visible-result count. */
         function draw() {
           const text = filters.text.toLowerCase();
           const visible = sorted.filter((testCase) =>

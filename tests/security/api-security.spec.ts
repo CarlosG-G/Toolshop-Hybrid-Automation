@@ -12,6 +12,7 @@ function jwtClaims(token: string): Record<string, unknown> {
   >;
 }
 
+/** Encodes synthetic JWT header/payload objects without signing, for token-rejection scenarios. */
 const base64url = (value: object): string =>
   Buffer.from(JSON.stringify(value)).toString("base64url");
 

@@ -7,11 +7,14 @@ const apiUrl = process.env.TOOLSHOP_API_URL ?? "http://127.0.0.1:8091";
 const siteUrl = process.env.TOOLSHOP_SITE_URL ?? "http://127.0.0.1:4200";
 const timeoutMs = Number(process.env.SUT_TIMEOUT_MS ?? 600_000);
 
+/** Runs Compose against this repository's disposable stack and propagates command failures. */
 const docker = (...args) =>
   execFileSync("docker", [...compose, ...args], { stdio: "inherit" });
 
+/** Delays the next readiness or database-seeding attempt without blocking Node's event loop. */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Polls an HTTP readiness condition until the configured deadline, retaining the last failure. */
 async function waitFor(url, label, accept = (r) => r.ok) {
   const start = Date.now();
   let last = "";
@@ -33,6 +36,7 @@ async function waitFor(url, label, accept = (r) => r.ok) {
   throw new Error(`${label} not ready at ${url} within ${timeoutMs}ms (last: ${last})`);
 }
 
+/** Recreates and seeds the disposable database, retrying while dependencies are starting. */
 async function seed() {
   const start = Date.now();
   for (;;) {
@@ -56,12 +60,14 @@ async function seed() {
   }
 }
 
+/** Waits for both the catalog API and frontend before declaring the local SUT ready. */
 async function wait() {
   await waitFor(`${apiUrl}/products?page=1`, "API");
   await waitFor(siteUrl, "UI");
 }
 
 const commands = {
+  /** Starts containers, resets sample data and waits for API/UI readiness. */
   up: async () => {
     docker("up", "-d", "--pull", "missing");
     await seed();
@@ -70,6 +76,7 @@ const commands = {
   seed,
   wait,
   reset: seed,
+  /** Stops the disposable stack and deletes its Compose-managed data volumes. */
   down: async () => docker("down", "-v"),
 };
 

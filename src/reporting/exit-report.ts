@@ -7,10 +7,12 @@ import type {
   UnifiedReport,
 } from "./model.js";
 
+/** Requirement design links plus the subset observed in non-skipped results. */
 export interface RequirementCoverage extends RequirementDetail {
   executedTests: string[];
 }
 
+/** Management evidence for a test cycle, not a production release authorization. */
 export interface ExitReport {
   generatedAt: string;
   runId: string | null;
@@ -28,10 +30,15 @@ export interface ExitReport {
   missingReports: string[];
 }
 
+/** Creates independent counters so aggregate and per-type totals never share state. */
 function emptyTotals(): TestTotals {
   return { passed: 0, detected: 0, failed: 0, flaky: 0, skipped: 0 };
 }
 
+/**
+ * Recounts case outcomes and joins executed IDs to requirement and open-defect records.
+ * Pass rate excludes skips; defect observations and flaky results are executed, not passed.
+ */
 export function buildExitReport(
   report: UnifiedReport,
   traceability: TraceabilityData,

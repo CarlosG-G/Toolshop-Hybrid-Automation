@@ -28,6 +28,7 @@ const failures = [];
 const apiUrl = process.env.TOOLSHOP_API_URL ?? targets[target].api;
 const siteUrl = process.env.TOOLSHOP_SITE_URL ?? targets[target].site;
 
+/** Checks HTTP availability with an eight-second deadline; does not validate the response schema. */
 async function checkApi(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
   if (!response.ok) {
@@ -35,6 +36,7 @@ async function checkApi(url) {
   }
 }
 
+/** Navigates with the test suite's Chrome profile, reporting HTTP/CDN failures and closing the browser. */
 async function checkSite(url) {
   const { chromium, devices } = await import("@playwright/test");
   const browser = await chromium.launch({ headless: true });

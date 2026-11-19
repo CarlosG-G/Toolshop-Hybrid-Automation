@@ -5,6 +5,7 @@ const report = JSON.parse(readFileSync(file, "utf8"));
 const DETECTED = new Set(["Killed", "Timeout"]);
 const UNDETECTED = new Set(["Survived", "NoCoverage"]);
 
+/** Computes Stryker's score from detected/undetected mutants, excluding invalid and ignored outcomes. */
 const score = (mutants) => {
   const detected = mutants.filter((m) => DETECTED.has(m.status)).length;
   const undetected = mutants.filter((m) => UNDETECTED.has(m.status)).length;

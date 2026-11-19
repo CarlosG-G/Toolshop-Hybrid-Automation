@@ -65,6 +65,7 @@ test.describe("OpenAPI contract validator @unit @contract", () => {
   });
 });
 
+/** Wraps a JSON Schema in the OpenAPI response content shape used by test documents. */
 const json = (schema: unknown): { content: Record<string, { schema?: unknown }> } => ({
   content: { "application/json": { schema } },
 });
@@ -145,13 +146,18 @@ test.describe("OpenAPI contract edge cases @unit @contract", () => {
 
   test("TC-CON-U10 loads the provider document and fails on HTTP errors", async () => {
     const urls: string[] = [];
+    /** Creates a minimal request context that records URLs and returns a controlled OpenAPI response. */
     const fake = (ok: boolean, status: number) =>
       ({
+        /** Records the requested URL and yields the configured response without network access. */
         get: async (url: string) => {
           urls.push(url);
           return {
+            /** Reports the synthetic HTTP success flag. */
             ok: () => ok,
+            /** Reports the synthetic HTTP status code. */
             status: () => status,
+            /** Returns the in-memory provider document for the loader under test. */
             json: async () => edgeContract.document,
           };
         },

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { CheckoutPage } from "../../src/pages/checkout.page.js";
 
+/** Builds a fake checkout whose lookup debounce and autofill delays expose readiness races. */
 const checkoutHtml = (
   delayedIndex: number,
   completeLookup: boolean,
@@ -87,6 +88,7 @@ const checkoutHtml = (
   });
 </script>`;
 
+/** Serves the local checkout fixture and a deterministic postcode response, without external APIs. */
 async function openCheckoutFixture(
   page: Page,
   delayedIndex: number,

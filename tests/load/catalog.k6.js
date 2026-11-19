@@ -28,6 +28,7 @@ export const options = {
   },
 };
 
+/** Runs one read-only catalog journey per virtual-user iteration, then pauses one second. */
 export default function () {
   const list = http.get(`${API}/products`, { tags: { name: "list" } });
   check(list, { "list is 200": (r) => r.status === 200 });

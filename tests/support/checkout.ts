@@ -6,6 +6,7 @@ import { LoginPage } from "../../src/pages/login.page.js";
 import { ProductPage } from "../../src/pages/product.page.js";
 import { seededCustomer } from "./gates.js";
 
+/** Extracts a nonempty invoice number from untrusted JSON; malformed responses throw explicitly. */
 export function invoiceNumberFrom(body: unknown): string {
   if (
     body === null ||
@@ -19,6 +20,7 @@ export function invoiceNumberFrom(body: unknown): string {
   return body.invoice_number;
 }
 
+/** Signs in with the local seeded customer, adds a product and opens a verified payment step. */
 export async function openPaymentStep(page: Page): Promise<CheckoutPage> {
   const login = new LoginPage(page);
   await login.open(config.siteUrl);

@@ -1,5 +1,6 @@
 import type { Element, Page } from "vibium";
 
+/** Finds headings by role/text; only the exact no-match timeout becomes [], other failures propagate. */
 export async function findSemanticHeadings(page: Page, text: string): Promise<Element[]> {
   try {
     return await page.findAll({ role: "heading", text }, { timeout: 2_000 });

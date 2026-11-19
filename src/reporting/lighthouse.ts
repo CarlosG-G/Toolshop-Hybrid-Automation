@@ -2,21 +2,27 @@ import { isRecord } from "./guards.js";
 
 const categoriesToCheck = ["performance", "accessibility", "best-practices"] as const;
 
+/** Lighthouse categories used by the desktop audit budgets. */
 export type LighthouseCategory = (typeof categoriesToCheck)[number];
+/** Category scores represented as fractions in the range [0, 1]. */
 export type LighthouseScores = Record<LighthouseCategory, number>;
 
-// Derived from five nightly runs (25 samples per page); see docs/test-management/test-plan.md.
+/** Budgets derived from five nightly runs (25 samples/page); see the test-management test plan. */
 export const lighthouseBudgets = {
   home: { performance: 0.6, accessibility: 0.9, "best-practices": 0.9 },
   login: { performance: 0.7, accessibility: 0.9, "best-practices": 0.9 },
 } as const satisfies Record<string, LighthouseScores>;
+/** Audits collected per page before an aggregate is considered complete. */
 export const lighthouseSampleCount = 5;
+/** Manifest invalidated before collection so interrupted runs cannot reuse stale samples. */
 export const lighthouseCollectionFile = "reports/lighthouse-collection.json";
+/** Disposable-system routes audited in collection order. */
 export const lighthousePages = [
   { page: "home", path: "/" },
   { page: "login", path: "/auth/login" },
 ] as const;
 
+/** Validated page scores and budget outcome, optionally retaining individual samples. */
 export interface LighthousePage {
   page: string;
   url: string;
@@ -25,10 +31,12 @@ export interface LighthousePage {
   samples?: LighthouseScores[];
 }
 
+/** Page result retaining all samples used to derive its aggregate scores. */
 export interface LighthouseSampledPage extends LighthousePage {
   samples: LighthouseScores[];
 }
 
+/** Requires every category to meet its page budget; rejects unknown page names. */
 export function passesLighthouseBudgets(page: string, scores: LighthouseScores): boolean {
   if (!Object.hasOwn(lighthouseBudgets, page)) {
     throw new Error(`Lighthouse ${page}: unknown page.`);
@@ -37,6 +45,7 @@ export function passesLighthouseBudgets(page: string, scores: LighthouseScores):
   return categoriesToCheck.every((key) => scores[key] >= budget[key]);
 }
 
+/** Uses median performance and worst accessibility/best-practices scores across five samples. */
 export function aggregateLighthouseScores(samples: LighthouseScores[]): LighthouseScores {
   if (samples.length !== lighthouseSampleCount) {
     throw new Error(`Lighthouse: expected ${lighthouseSampleCount} samples.`);
@@ -51,6 +60,7 @@ export function aggregateLighthouseScores(samples: LighthouseScores[]): Lighthou
   };
 }
 
+/** Parses an HTTP(S) URL restricted to the disposable loopback system. */
 function loopbackUrl(page: string, value: unknown): URL {
   if (typeof value !== "string" || !URL.canParse(value)) {
     throw new Error(`Lighthouse ${page}: invalid final URL.`);
@@ -65,6 +75,7 @@ function loopbackUrl(page: string, value: unknown): URL {
   return url;
 }
 
+/** Requires the configured page path with no query or fragment and normalizes its URL. */
 export function lighthousePageUrl(page: string, value: unknown): string {
   const target = lighthousePages.find((candidate) => candidate.page === page);
   if (!target) throw new Error(`Lighthouse ${page}: unknown page.`);
@@ -75,6 +86,7 @@ export function lighthousePageUrl(page: string, value: unknown): string {
   return url.href;
 }
 
+/** Rejects interrupted or incompatible collections before any old sample files are read. */
 export function assertCompleteLighthouseCollection(value: unknown): void {
   if (
     !isRecord(value) ||
@@ -93,6 +105,7 @@ export function assertCompleteLighthouseCollection(value: unknown): void {
   }
 }
 
+/** Validates one raw audit, rejects runtime errors and evaluates its category budgets. */
 export function summarizeLighthouse(page: string, value: unknown): LighthousePage {
   if (!isRecord(value) || !isRecord(value.categories)) {
     throw new Error(`Lighthouse ${page}: missing categories.`);
@@ -100,6 +113,7 @@ export function summarizeLighthouse(page: string, value: unknown): LighthousePag
   if (value.runtimeError) throw new Error(`Lighthouse ${page}: runtime error reported.`);
   const url = loopbackUrl(page, value.finalDisplayedUrl);
   const categories = value.categories;
+  /** Reads a finite category fraction, preserving a page-specific diagnostic on failure. */
   const score = (name: LighthouseCategory): number => {
     const category = categories[name];
     if (
@@ -126,6 +140,7 @@ export function summarizeLighthouse(page: string, value: unknown): LighthousePag
   };
 }
 
+/** Aggregates a complete sample set only when every audit ends at the expected page URL. */
 export function summarizeLighthouseSamples(
   page: string,
   values: unknown[],

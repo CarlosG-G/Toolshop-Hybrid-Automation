@@ -1,3 +1,4 @@
+/** Writes JSON and Markdown management summaries from unified results and traceability. */
 import { readFile, writeFile } from "node:fs/promises";
 import { buildExitReport } from "../src/reporting/exit-report.js";
 import { isTraceabilityData, isUnifiedReport } from "../src/reporting/model.js";

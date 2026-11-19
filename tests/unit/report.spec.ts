@@ -18,6 +18,7 @@ const sources = [
 const infrastructure =
   "api=success; site=failure; vibium_hermetic=success; vibium_site=failure; vibium_live=skipped";
 
+/** Serializes minimal Playwright evidence, including retry attempts for flaky-outcome scenarios. */
 function playwrightReport(
   title: string,
   outcome: "expected" | "unexpected" | "flaky",
@@ -58,6 +59,7 @@ function playwrightReport(
   });
 }
 
+/** Runs the report CLI on temporary evidence, reads its JSON/Markdown output and cleans up. */
 async function buildReport(
   files: Record<string, string>,
   status = infrastructure,

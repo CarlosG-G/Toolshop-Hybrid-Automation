@@ -14,6 +14,7 @@ import {
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const run = promisify(execFile);
 
+/** Writes synthetic Lighthouse samples and a completion marker, optionally omitting one sample. */
 async function writeSamples(
   directory: string,
   performances: number[],
@@ -54,6 +55,7 @@ async function writeSamples(
   );
 }
 
+/** Runs the real Lighthouse report builder in an isolated fixture directory and captures its summary. */
 function buildReport(directory: string) {
   return run(
     process.execPath,

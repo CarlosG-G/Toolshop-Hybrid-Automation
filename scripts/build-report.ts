@@ -1,3 +1,4 @@
+/** Merges labeled Playwright JSON files; records missing inputs but rejects malformed reports. */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import type { ReportCase, UnifiedReport } from "../src/reporting/model.js";
 import { collectCases, type PlaywrightReport } from "../src/reporting/playwright.js";

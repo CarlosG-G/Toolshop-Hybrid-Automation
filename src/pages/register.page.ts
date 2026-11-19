@@ -34,9 +34,12 @@ export interface RegistrationForm {
 
 const REGISTER_TIMEOUT_MS = 20_000;
 
+/** Registration UI actions and accessibility probes; does not decide which outcomes are expected. */
 export class RegisterPage {
+  /** Reuses an existing page so registration stays within the caller's browser context. */
   constructor(private readonly page: Page) {}
 
+  /** Navigates to registration and waits for the first form field. */
   async open(siteUrl: string): Promise<void> {
     await this.page.goto(`${siteUrl}/auth/register`);
     await this.page.locator('[data-test="first-name"]').waitFor({
@@ -45,19 +48,25 @@ export class RegisterPage {
     });
   }
 
+  /** Clicks submit without waiting for a request, including client-side validation scenarios. */
   async submit(): Promise<void> {
     await this.page.locator('[data-test="register-submit"]').click();
   }
 
+  /** Returns a required field's validation-message locator without asserting its contents. */
   fieldError(field: RegisterField): Locator {
     return this.page.locator(`[data-test="${field}-error"]`);
   }
 
+  /** Returns the general registration-error locator for API-level rejection assertions. */
   registerError(): Locator {
     return this.page.locator('[data-test="register-error"]');
   }
 
-  /** Ids of fields whose error is not exposed through aria-invalid and aria-describedby. */
+  /**
+   * Lists fields whose errors lack valid ARIA links, in required-field order.
+   * Waits for each error/input and checks aria-invalid plus the error's described-by link.
+   */
   async fieldsWithUnlinkedErrors(): Promise<RegisterField[]> {
     const unlinked: RegisterField[] = [];
     for (const field of requiredRegisterFields) {
@@ -72,6 +81,7 @@ export class RegisterPage {
     return unlinked;
   }
 
+  /** Fills and submits the form while capturing its POST response, including HTTP rejections. */
   async register(user: RegistrationForm): Promise<Response> {
     await this.fill(user);
 
@@ -88,6 +98,7 @@ export class RegisterPage {
     return response;
   }
 
+  /** Fills all registration inputs, using house number 1 for the reusable test address. */
   async fill(user: RegistrationForm): Promise<void> {
     await this.page.locator('[data-test="first-name"]').fill(user.first_name);
     await this.page.locator('[data-test="last-name"]').fill(user.last_name);

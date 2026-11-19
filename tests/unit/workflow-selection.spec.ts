@@ -139,11 +139,13 @@ test("manual selection requires an explicit GitHub output destination", async ()
   ).rejects.toThrow("GITHUB_OUTPUT is required");
 });
 
+/** Narrows parsed workflow YAML to an object mapping, failing explicitly for other shapes. */
 function record(value: unknown): Record<string, unknown> {
   if (!isRecord(value)) throw new Error("Expected a workflow mapping.");
   return value;
 }
 
+/** Narrows workflow steps to an array of mappings, rejecting invalid arrays or entries. */
 function records(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) throw new Error("Expected workflow steps.");
   return value.map(record);

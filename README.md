@@ -30,6 +30,11 @@ Public-site checks are read-only and informational, not the regression gate.
 
 ### Reviewer quick tour
 
+**New to the code?** Start with the Spanish
+[project guide: what each part does and why it exists](docs/guia-del-proyecto.md).
+It covers the reading order, page objects, suites, scripts, safety gates and report
+states. Named helpers and methods include JSDoc for editor hover documentation.
+
 | If you have… | Look at                                                                                                                                                                                                   |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 minute     | The [live dashboard](https://carlosg-g.github.io/Toolshop-Hybrid-Automation/) and the [latest CI run](https://github.com/CarlosG-G/Toolshop-Hybrid-Automation/actions/workflows/ci.yml)                   |

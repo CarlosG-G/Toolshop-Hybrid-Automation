@@ -36,6 +36,7 @@ test.afterAll(async () => {
   );
 });
 
+/** Runs the real health-check CLI against this test's local HTTP server with a bounded timeout. */
 function runCheck(scope: string, sitePath = "/site") {
   return execFileAsync(process.execPath, ["scripts/check-target.mjs", scope], {
     env: {

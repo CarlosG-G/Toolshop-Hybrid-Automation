@@ -29,6 +29,7 @@ const traceability: TraceabilityData = {
   ],
 };
 
+/** Wraps cases in a fixed report with zero totals so tests verify summary recounting. */
 function report(cases: ReportCase[]): UnifiedReport {
   return {
     generatedAt: "2026-01-01T00:00:00.000Z",
@@ -43,6 +44,7 @@ function report(cases: ReportCase[]): UnifiedReport {
   };
 }
 
+/** Builds a minimal local test observation with the requested ID, type and outcome. */
 function testCase(id: string, type: string, status: ReportCase["status"]): ReportCase {
   return {
     id,

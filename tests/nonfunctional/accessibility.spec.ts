@@ -21,6 +21,7 @@ interface ScanTarget {
   expectedCritical: CriticalViolation[];
 }
 
+/** Creates an accessibility-scenario opener that waits for a page-specific readiness locator. */
 function staticPage(path: string, ready: string): (page: Page) => Promise<void> {
   return async (page) => {
     await page.goto(`${config.siteUrl}${path}`);
@@ -69,6 +70,7 @@ const pages: ScanTarget[] = [
   {
     id: "TC-A11Y-005",
     name: "product detail",
+    /** Opens the first rendered product and waits for its detail controls before scanning. */
     open: async (page) => {
       await new ProductPage(page).openFirstAvailable(config.siteUrl);
     },
@@ -77,6 +79,7 @@ const pages: ScanTarget[] = [
   {
     id: "TC-A11Y-006",
     name: "cart",
+    /** Adds a real product before opening the nonempty cart accessibility target. */
     open: async (page) => {
       const product = new ProductPage(page);
       await product.openFirstAvailable(config.siteUrl);
@@ -88,6 +91,7 @@ const pages: ScanTarget[] = [
   {
     id: "TC-A11Y-007",
     name: "checkout payment step",
+    /** Prepares an authenticated cart and completed billing step before the payment scan. */
     open: async (page) => {
       await openPaymentStep(page);
     },

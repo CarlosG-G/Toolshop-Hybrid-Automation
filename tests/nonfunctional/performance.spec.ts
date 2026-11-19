@@ -7,6 +7,7 @@ const API_P95_BUDGET_MS = 1_000;
 const PAGE_LOAD_BUDGET_MS = 5_000;
 const SAMPLES = 20;
 
+/** Returns the nearest-rank percentile of nonempty samples without changing their original order. */
 function percentile(values: number[], p: number): number {
   const sorted = values.toSorted((a, b) => a - b);
   return sorted[Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1)]!;

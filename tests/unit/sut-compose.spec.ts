@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { parse } from "yaml";
 import { isRecord } from "../../src/reporting/guards.js";
 
+/** Narrows parsed Compose values to argument arrays containing only strings. */
 function isStringArray(value: unknown): value is string[] {
   return (
     Array.isArray(value) &&
@@ -10,6 +11,7 @@ function isStringArray(value: unknown): value is string[] {
   );
 }
 
+/** Extracts the expected three-part Angular startup command or fails on an invalid Compose shape. */
 function angularCommand(value: unknown): string[] {
   if (
     !isRecord(value) ||

@@ -8,6 +8,7 @@ import {
 } from "./lighthouse.js";
 import { isRecord } from "./guards.js";
 
+/** Validated k6 load evidence; threshold success is separate from individual metrics. */
 export interface LoadMetrics {
   p95Ms: number;
   failureRate: number;
@@ -17,17 +18,20 @@ export interface LoadMetrics {
   thresholdsPassed: boolean;
 }
 
+/** One ZAP alert type and its affected instance count. */
 export interface ZapAlert {
   name: string;
   risk: "high" | "medium" | "low" | "informational";
   instances: number;
 }
 
+/** ZAP alert records and counts of alert types, rather than instances, by risk. */
 export interface ZapMetrics {
   alerts: ZapAlert[];
   byRisk: Record<ZapAlert["risk"], number>;
 }
 
+/** Reads a finite numeric field or reports which input metric is malformed. */
 function numberField(value: unknown, key: string, context: string): number {
   if (
     !isRecord(value) ||
@@ -39,6 +43,7 @@ function numberField(value: unknown, key: string, context: string): number {
   return value[key];
 }
 
+/** Validates the three supported summary scores as fractions in the range [0, 1]. */
 function lighthouseSummaryScores(input: unknown): LighthouseScores {
   const scores = {
     performance: numberField(input, "performance", "Lighthouse summary"),
@@ -51,6 +56,7 @@ function lighthouseSummaryScores(input: unknown): LighthouseScores {
   return scores;
 }
 
+/** Extracts k6 metrics; threshold booleans indicate breaches, so false means success. */
 export function summarizeK6(value: unknown): LoadMetrics {
   if (!isRecord(value) || !isRecord(value.metrics)) {
     throw new Error("k6 report: missing metrics.");
@@ -85,6 +91,7 @@ export function summarizeK6(value: unknown): LoadMetrics {
   };
 }
 
+/** Combines sites, validates risk codes and counts alert types separately from instances. */
 export function summarizeZap(value: unknown): ZapMetrics {
   if (!isRecord(value) || !Array.isArray(value.site)) {
     throw new Error("ZAP report: missing sites.");
@@ -120,6 +127,10 @@ export function summarizeZap(value: unknown): ZapMetrics {
   return { alerts, byRisk };
 }
 
+/**
+ * Validates stored Lighthouse summaries, accepting legacy pages without raw samples.
+ * Sampled runs must agree with aggregates, budgets, page identities and a shared origin.
+ */
 export function summarizeLighthouseRun(value: unknown): {
   passed: boolean;
   pages: LighthousePage[];

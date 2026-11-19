@@ -17,6 +17,7 @@ interface OperationObject {
 const SPEC_ID = "toolshop-openapi";
 const addFormats = addFormatsModule as unknown as (ajv: Ajv2020) => Ajv2020;
 
+/** Escapes a path segment for a JSON Pointer, including slashes in API paths and MIME types. */
 const escapePointer = (segment: string): string =>
   segment.replace(/~/g, "~0").replace(/\//g, "~1");
 
@@ -28,6 +29,7 @@ export class OpenApiContract {
   private readonly ajv: Ajv2020;
   private readonly cache = new Map<string, ValidateFunction>();
 
+  /** Registers the provider document once so compiled validators can resolve internal references. */
   private constructor(readonly document: OpenApiDocument) {
     // `strict: false` tolerates OpenAPI-only keywords such as `example`.
     this.ajv = addFormats(new Ajv2020({ strict: false, allErrors: true }));
@@ -37,6 +39,7 @@ export class OpenApiContract {
     this.ajv.addSchema(document as object, SPEC_ID);
   }
 
+  /** Downloads the provider's OpenAPI document; throws if its endpoint returns an HTTP error. */
   static async load(
     request: APIRequestContext,
     apiUrl: string,
@@ -48,14 +51,17 @@ export class OpenApiContract {
     return new OpenApiContract((await response.json()) as OpenApiDocument);
   }
 
+  /** Builds an isolated validator from an in-memory document, without network access. */
   static fromDocument(document: OpenApiDocument): OpenApiContract {
     return new OpenApiContract(document);
   }
 
+  /** Returns the document's declared OpenAPI version, not the application version. */
   get version(): string {
     return this.document.openapi;
   }
 
+  /** Lists supported HTTP method/path pairs in document order, excluding path metadata. */
   operations(): string[] {
     return Object.entries(this.document.paths).flatMap(([path, item]) =>
       Object.keys(item)
@@ -90,6 +96,7 @@ export class OpenApiContract {
     return (validate.errors ?? []).map(formatError);
   }
 
+  /** Compiles and caches one validator per operation/status/MIME type; missing schemas throw. */
   private validator(
     method: HttpMethod,
     path: string,
@@ -128,6 +135,7 @@ export class OpenApiContract {
   }
 }
 
+/** Formats an Ajv violation with its instance path and rule parameters for test diagnostics. */
 function formatError(error: ErrorObject): string {
   const location = error.instancePath || "(root)";
   return `${location} ${error.message ?? "is invalid"} ${JSON.stringify(error.params)}`;

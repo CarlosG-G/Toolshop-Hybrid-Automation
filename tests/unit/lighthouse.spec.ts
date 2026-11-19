@@ -7,6 +7,7 @@ import {
 } from "../../src/reporting/lighthouse.js";
 import { summarizeLighthouseRun } from "../../src/reporting/quality.js";
 
+/** Builds one raw Lighthouse result with explicit category scores and a configurable final URL. */
 function result(
   performance: number,
   accessibility: number,
@@ -23,6 +24,7 @@ function result(
   };
 }
 
+/** Creates comparable Lighthouse samples, varying performance while holding other scores constant. */
 function sampleResults(performances: number[], url = "http://127.0.0.1:4200/") {
   return performances.map((performance) => result(performance, 0.9, 0.95, url));
 }

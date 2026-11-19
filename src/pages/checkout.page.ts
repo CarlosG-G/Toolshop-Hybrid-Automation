@@ -12,6 +12,7 @@ interface BillingLookup {
   state: string;
 }
 
+/** Narrows postcode lookup JSON to an address with nonblank street, city and state. */
 function isBillingLookup(value: unknown): value is BillingLookup {
   return (
     typeof value === "object" &&
@@ -28,6 +29,7 @@ function isBillingLookup(value: unknown): value is BillingLookup {
   );
 }
 
+/** Matches only GET lookups for the exact billing address used by this checkout flow. */
 function isBillingLookupRequest(request: Request): boolean {
   const url = new URL(request.url());
   return (
@@ -39,12 +41,15 @@ function isBillingLookupRequest(request: Request): boolean {
   );
 }
 
+/** Checkout wizard interactions, including debounced address lookup and method-specific payments. */
 export class CheckoutPage {
+  /** Wraps a page with a configurable wait budget; performs no navigation. */
   constructor(
     private readonly page: Page,
     private readonly timeoutMs = CHECKOUT_TIMEOUT_MS,
   ) {}
 
+  /** Waits for checkout's sign-in continuation button after leaving the cart. */
   async waitForAddressStep(): Promise<void> {
     await this.page.locator('[data-test="proceed-2"]').waitFor({
       state: "visible",
@@ -52,6 +57,7 @@ export class CheckoutPage {
     });
   }
 
+  /** Advances through sign-in and billing, waiting for postcode autofill before opening payment. */
   async continueToPayment(): Promise<void> {
     await this.page.locator('[data-test="proceed-2"]').click();
     const proceedToPayment = this.page.locator('[data-test="proceed-3"]');
@@ -67,16 +73,19 @@ export class CheckoutPage {
     });
   }
 
+  /** Tracks both debounced postcode requests, verifies autofill and always removes request listeners. */
   private async fillBillingAddress(): Promise<void> {
     const pending = new Set<Request>();
     const completed: Request[] = [];
     let started = 0;
+    /** Tracks matching requests so an earlier lookup cannot hide a later pending one. */
     const onRequest = (request: Request): void => {
       if (isBillingLookupRequest(request)) {
         started += 1;
         pending.add(request);
       }
     };
+    /** Records finished or failed tracked lookups for explicit response validation. */
     const onComplete = (request: Request): void => {
       if (pending.delete(request)) completed.push(request);
     };
@@ -136,16 +145,20 @@ export class CheckoutPage {
     }
   }
 
+  /** Returns the payment-method dropdown for readiness checks and validation scenarios. */
   paymentMethod(): Locator {
     return this.page.locator('[data-test="payment-method"]');
   }
 
+  /** Selects a supported payment method, revealing its method-specific controls. */
   async selectPaymentMethod(method: PaymentMethod): Promise<void> {
     await this.paymentMethod().selectOption(method);
   }
 
+  /** Selects a method and fills its required controls; missing details fail with the field name. */
   async fillPaymentDetails(payment: Payment): Promise<void> {
     await this.selectPaymentMethod(payment.payment_method);
+    /** Retrieves one required payment value or throws a method-specific diagnostic. */
     const detail = (field: string): string => {
       const value = payment.payment_details[field];
       if (value === undefined) {
@@ -155,6 +168,7 @@ export class CheckoutPage {
       }
       return value;
     };
+    /** Fills a payment input using its data-test key and validated detail value. */
     const fill = async (field: string): Promise<void> => {
       await this.page.locator(`[data-test="${field}"]`).fill(detail(field));
     };
@@ -189,22 +203,27 @@ export class CheckoutPage {
     }
   }
 
+  /** Clicks Finish in the payment-validation stage; does not assert acceptance. */
   async checkPayment(): Promise<void> {
-    await this.page.locator('[data-test="finish"]').click();
+    await this.finishButton().click();
   }
 
+  /** Clicks Finish again in the order-confirmation stage; the caller verifies the invoice. */
   async confirmOrder(): Promise<void> {
-    await this.page.locator('[data-test="finish"]').click();
+    await this.finishButton().click();
   }
 
+  /** Returns the shared Finish control used by both payment checking and order confirmation. */
   finishButton(): Locator {
     return this.page.locator('[data-test="finish"]');
   }
 
+  /** Returns the payment-accepted message locator; this is not yet an order confirmation. */
   paymentSuccessMessage(): Locator {
     return this.page.locator('[data-test="payment-success-message"]');
   }
 
+  /** Returns the final confirmation container where tests can check the invoice number. */
   orderConfirmation(): Locator {
     return this.page.locator("#order-confirmation");
   }

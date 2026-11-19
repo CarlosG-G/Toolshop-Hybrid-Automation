@@ -10,12 +10,14 @@ const screenshotOptions = {
   maxDiffPixelRatio: 0.003,
 } as const;
 
+/** Restricts visual baselines to the writable Linux SUT and fixes the capture viewport. */
 async function prepare(page: Page): Promise<void> {
   gates.writableSut();
   test.skip(process.platform !== "linux", "The SUT baseline is generated in Linux CI.");
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+/** Waits for the capture region, fonts and image decoding; broken images remain visible in the capture. */
 async function settle(page: Page, region: Locator): Promise<void> {
   await expect(region).toBeVisible();
   await page.evaluate(async () => {

@@ -1,3 +1,4 @@
+/** Aggregates completed Lighthouse samples and marks the process failed when budgets are missed. */
 import { readFile, writeFile } from "node:fs/promises";
 import {
   assertCompleteLighthouseCollection,

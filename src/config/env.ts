@@ -15,6 +15,7 @@ const targets: Record<ToolshopTarget, { siteUrl: string; apiUrl: string }> = {
   },
 };
 
+/** Defaults an unset target to stable and rejects unknown names instead of guessing URLs. */
 function parseTarget(value: string | undefined): ToolshopTarget {
   if (value === undefined || value === "") {
     return "stable";
@@ -29,6 +30,7 @@ function parseTarget(value: string | undefined): ToolshopTarget {
   );
 }
 
+/** Allows writes only for the local target when both HTTP(S) URLs point to loopback hosts. */
 export function allowsLocalWrites(
   target: ToolshopTarget,
   siteUrl: string,
@@ -44,6 +46,7 @@ export function allowsLocalWrites(
   });
 }
 
+/** Resolves target defaults and explicit URL overrides, then derives the local-write safety gate. */
 export function resolveToolshopConfig(env: NodeJS.ProcessEnv) {
   const target = parseTarget(env.TOOLSHOP_TARGET);
   const defaults = targets[target];
@@ -60,4 +63,5 @@ export function resolveToolshopConfig(env: NodeJS.ProcessEnv) {
   } as const;
 }
 
+/** Process-wide configuration snapshot; set environment variables before importing test modules. */
 export const config = resolveToolshopConfig(process.env);

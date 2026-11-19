@@ -1,8 +1,10 @@
+/** Discovers test evidence and generates requirement/defect links with actionable gap diagnostics. */
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { format, resolveConfig } from "prettier";
 import type { Defect } from "../src/reporting/model.js";
 
+/** Requirement configuration whose test entries are regular-expression patterns. */
 interface Requirement {
   id: string;
   title: string;
@@ -22,6 +24,7 @@ const RANGE = /\b(TC-[A-Z0-9]+)-(\d+)\.\.(\d+)\b/g;
 const DEFECT =
   /^\|\s*(DEF-\d+)\s*\|(?:\s*\[#\d+\]\((https:\/\/[^)\s]+)\)\s*\|)?\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|/gm;
 
+/** Finds specs and feature files recursively, excluding unit-test fixture identifiers. */
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
     entry.isDirectory()
@@ -34,6 +37,7 @@ function walk(dir: string): string[] {
   );
 }
 
+/** Collects unique sorted test IDs, expanding declared numeric ranges with their original padding. */
 export function collectTestIds(root: string): string[] {
   const ids = new Set<string>();
   for (const file of walk(root)) {
@@ -51,6 +55,7 @@ export function collectTestIds(root: string): string[] {
   return [...ids].toSorted();
 }
 
+/** Parses defect-table rows, retaining issue links and rejecting duplicate or unlinked defects. */
 export function collectDefectDetails(markdown: string): Defect[] {
   const defects = [...markdown.matchAll(DEFECT)].map((match) => ({
     id: match[1]!,
@@ -72,12 +77,14 @@ export function collectDefectDetails(markdown: string): Defect[] {
   return defects;
 }
 
+/** Projects validated defect records into the ID-to-status map used by callers. */
 export function collectDefects(markdown: string): Map<string, string> {
   return new Map(
     collectDefectDetails(markdown).map((defect) => [defect.id, defect.status]),
   );
 }
 
+/** Expanded requirement links and diagnostics for orphan IDs, uncovered requirements and dead patterns. */
 export interface Trace {
   matrix: Map<string, string[]>;
   untraced: string[];
@@ -85,14 +92,18 @@ export interface Trace {
   ghostTests: string[];
 }
 
-/** Builds requirement -> tests; `ghostTests` are patterns that match no existing test. */
+/**
+ * Builds sorted requirement links and gap diagnostics, compiling each pattern once.
+ * With no IDs, patterns remain unevaluated and are reported as ghosts.
+ */
 export function trace(requirements: Requirement[], ids: string[]): Trace {
   const matrix = new Map<string, string[]>();
   const ghostTests: string[] = [];
   for (const requirement of requirements) {
     const matched = new Set<string>();
     for (const pattern of requirement.tests) {
-      const hits = ids.filter((id) => new RegExp(`^${pattern}$`).test(id));
+      const matcher = ids.length > 0 ? new RegExp(`^${pattern}$`) : null;
+      const hits = matcher ? ids.filter((id) => matcher.test(id)) : [];
       if (hits.length === 0) {
         ghostTests.push(`${requirement.id}: ${pattern}`);
       }
@@ -118,16 +129,18 @@ export function contractCoverageProblems(
   contract: ContractOperation[],
   ids: string[],
 ): string[] {
+  const knownIds = new Set(ids);
   return contract.flatMap((entry) => [
     ...(entry.tests.length === 0 && !entry.note
       ? [`Contract operation ${entry.operation} has neither tests nor a note`]
       : []),
     ...entry.tests
-      .filter((id) => !ids.includes(id))
+      .filter((id) => !knownIds.has(id))
       .map((id) => `Contract operation ${entry.operation} references unknown test ${id}`),
   ]);
 }
 
+/** Renders expanded requirement links, linked defects and optional API contract evidence as Markdown. */
 function render(
   requirements: Requirement[],
   result: Trace,

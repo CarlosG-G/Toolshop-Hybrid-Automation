@@ -32,6 +32,27 @@ test("traceability reports orphan tests, uncovered requirements and dead pattern
   expect(result.ghostTests).toContain("REQ-2: TC-SEC-\\d+");
 });
 
+test("traceability reuses patterns without losing repeated matches or sorted unique links", () => {
+  const result = trace(
+    [{ id: "REQ-1", title: "a", risk: "High", tests: ["TC-API-\\d+", "TC-API-001"] }],
+    ["TC-API-002", "TC-API-001", "TC-API-002", "prefix-TC-API-003"],
+  );
+
+  expect(result.matrix.get("REQ-1")).toEqual(["TC-API-001", "TC-API-002"]);
+  expect(result.untraced).toEqual(["prefix-TC-API-003"]);
+  expect(result.ghostTests).toEqual([]);
+});
+
+test("traceability leaves patterns unevaluated without IDs but rejects invalid patterns with IDs", () => {
+  const invalid = [{ id: "REQ-1", title: "a", risk: "High", tests: ["["] }];
+  const result = trace(invalid, []);
+
+  expect(result.matrix.get("REQ-1")).toEqual([]);
+  expect(result.uncovered).toEqual(["REQ-1"]);
+  expect(result.ghostTests).toEqual(["REQ-1: ["]);
+  expect(() => trace(invalid, ["TC-API-001"])).toThrow(SyntaxError);
+});
+
 test("defect log rows are parsed with their status", () => {
   const defects = collectDefects(
     "| DEF-001 | Title | Major | Medium | TC-API-025 | Open |\n| DEF-002 | T | Minor | Low | TC-API-042 | Fixed |",
@@ -102,5 +123,21 @@ test("contract coverage entries need a known test or a justification", () => {
   ).toEqual([
     "Contract operation GET /orphan has neither tests nor a note",
     "Contract operation POST /invoices references unknown test TC-CON-999",
+  ]);
+});
+
+test("contract coverage retains duplicate diagnostics and input order", () => {
+  expect(
+    contractCoverageProblems(
+      [
+        { operation: "GET /first", tests: ["unknown", "known", "unknown"] },
+        { operation: "GET /second", tests: ["missing"] },
+      ],
+      ["known", "known"],
+    ),
+  ).toEqual([
+    "Contract operation GET /first references unknown test unknown",
+    "Contract operation GET /first references unknown test unknown",
+    "Contract operation GET /second references unknown test missing",
   ]);
 });

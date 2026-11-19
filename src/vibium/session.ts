@@ -1,9 +1,11 @@
 import { browser, type Page } from "vibium";
 
 interface BiDiSender {
+  /** Sends a WebDriver BiDi command through Vibium's underlying browser connection. */
   send(method: string, params: Record<string, unknown>): Promise<unknown>;
 }
 
+/** Checks Vibium's exposed client before accessing its lower-level BiDi send method. */
 function bidiClient(session: object): BiDiSender {
   const client: unknown = Reflect.get(session, "client");
   if (
@@ -36,6 +38,7 @@ export async function startDesktopChrome() {
   }
 }
 
+/** Sets a consistent 1280x720 viewport so semantic smoke tests share desktop layout assumptions. */
 export async function setVibiumDesktopViewport(page: Page): Promise<void> {
   await page.setViewport({ width: 1280, height: 720 });
 }

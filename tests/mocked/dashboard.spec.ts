@@ -9,6 +9,7 @@ import { expect, test, type Page } from "@playwright/test";
 const projectRoot = fileURLToPath(new URL("../../", import.meta.url));
 const dashboardPath = join(projectRoot, "dashboard", "index.html");
 
+/** Builds minimal dashboard evidence, allowing malformed missing-report data for rejection tests. */
 function dashboardReport(missingReports: unknown, passed = 1) {
   return {
     target: "stable",
@@ -22,6 +23,7 @@ function dashboardReport(missingReports: unknown, passed = 1) {
   };
 }
 
+/** Opens the real dashboard template with intercepted JSON evidence and optional report overrides. */
 async function openDashboard(
   page: Page,
   missingReports: unknown,

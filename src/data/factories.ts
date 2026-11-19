@@ -1,3 +1,4 @@
+/** Minimal synthetic identity used by account factories and isolated customer fixtures. */
 export interface DemoUser {
   first_name: string;
   last_name: string;
@@ -5,6 +6,7 @@ export interface DemoUser {
   password: string;
 }
 
+/** Builds synthetic credentials from a sanitized seed; rejects seeds with fewer than six safe characters. */
 export function createDemoUser(seed: string = crypto.randomUUID()): DemoUser {
   const safeSeed = seed.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
@@ -20,7 +22,10 @@ export function createDemoUser(seed: string = crypto.randomUUID()): DemoUser {
   };
 }
 
-/** ISO date (YYYY-MM-DD) for someone who turns `years` old `offsetDays` from today. */
+/**
+ * Returns a UTC birth date for age boundaries; positive offsetDays makes the person younger.
+ * The optional clock makes tests reproducible; Date normalizes leap-day anniversaries.
+ */
 export function dobForAge(years: number, offsetDays = 0, today = new Date()): string {
   const date = new Date(
     Date.UTC(today.getUTCFullYear() - years, today.getUTCMonth(), today.getUTCDate()),
@@ -29,6 +34,7 @@ export function dobForAge(years: number, offsetDays = 0, today = new Date()): st
   return date.toISOString().slice(0, 10);
 }
 
+/** Complete registration fixture, including the house number required by the UI. */
 export interface RegistrationData {
   first_name: string;
   last_name: string;
@@ -46,7 +52,7 @@ export interface RegistrationData {
   };
 }
 
-/** Valid registration payload with a unique identity; override fields to derive negative cases. */
+/** Builds valid unique registration data; overrides are shallow, so address replaces the whole address. */
 export function buildRegistration(
   overrides: Partial<RegistrationData> = {},
 ): RegistrationData {

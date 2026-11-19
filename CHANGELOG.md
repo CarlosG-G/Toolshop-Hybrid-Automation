@@ -4,6 +4,8 @@
 
 ### Added
 
+- Spanish project walkthrough covering architecture, page objects, suites, scripts,
+  environment safety and report interpretation, plus editor-hover JSDoc for named helpers.
 - `npm run social-preview` renders the 1280x640 GitHub social preview card to `docs/assets/social-preview.png`.
 - Registration exploratory charter and an improvement roadmap (`docs/roadmap.md`).
 - TC-API-068 and TC-API-069 cover the exact 18th and 75th birthdays (roadmap item RM-01).
@@ -32,6 +34,9 @@
 
 ### Changed
 
+- Reuse compiled traceability patterns and indexed contract operations without changing
+  traceability links or validation diagnostics.
+- Reuse the checkout Finish locator while retaining separate payment and order actions.
 - Lighthouse budgets are per page and derived from five nightly runs: accessibility and best
   practices 0.90, performance 0.70 on login and 0.60 on home. The k6 p95 threshold drops from
   1500 ms to 100 ms (roadmap item RM-09).

@@ -2,6 +2,7 @@ import type { ExitReport } from "./exit-report.js";
 import { isRecord } from "./guards.js";
 import { isTestTotals, type TestTotals, type UnifiedReport } from "./model.js";
 
+/** Compact dashboard snapshot retained independently of individual test cases. */
 export interface HistoryEntry {
   runId: string | null;
   generatedAt: string;
@@ -12,6 +13,7 @@ export interface HistoryEntry {
   evidenceUrl: string | null;
 }
 
+/** Validates stored history and projects each run onto the supported snapshot fields. */
 export function parseHistory(value: unknown): HistoryEntry[] {
   if (!isRecord(value) || !Array.isArray(value.runs)) {
     throw new Error("History report: missing runs.");
@@ -46,6 +48,10 @@ export function parseHistory(value: unknown): HistoryEntry[] {
   });
 }
 
+/**
+ * Prepends the current snapshot, replaces the same run and keeps at most `limit` entries.
+ * Local runs without an ID are identified by their generation timestamp.
+ */
 export function updateHistory(
   previous: HistoryEntry[],
   report: UnifiedReport,
@@ -62,6 +68,7 @@ export function updateHistory(
     executionCoverage: exit.executionCoverage,
     evidenceUrl: report.evidenceUrl,
   };
+  /** Matches CI run IDs, or timestamps when both snapshots are local runs. */
   const sameRun = (entry: HistoryEntry): boolean =>
     current.runId !== null
       ? entry.runId === current.runId

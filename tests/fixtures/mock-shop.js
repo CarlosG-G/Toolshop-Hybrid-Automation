@@ -5,6 +5,7 @@ const cartCount = document.querySelector("#cart-count");
 let cartItems = 0;
 let allProducts = [];
 
+/** Rebuilds the fake catalog and its cart handlers from the supplied in-memory product list. */
 function render(items) {
   products.replaceChildren();
   for (const product of items) {
@@ -24,6 +25,7 @@ function render(items) {
   status.textContent = `${items.length} products`;
 }
 
+/** Loads the local fake product API and renders its results for offline browser tests. */
 async function loadProducts() {
   status.textContent = "Loading products...";
   const response = await fetch("/api/products");

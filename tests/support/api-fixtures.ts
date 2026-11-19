@@ -29,9 +29,11 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
     },
     { scope: "worker" },
   ],
+  /** Gives each test an anonymous client using Playwright's automatically disposed request context. */
   api: async ({ request }, use) => {
     await use(new ToolshopApi(request, config.apiUrl));
   },
+  /** Registers a unique customer only on the disposable local SUT and exposes its credentials. */
   customer: async ({ api }, use) => {
     test.skip(
       !config.allowsWrites,
@@ -42,6 +44,7 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
     expect(registered.status, "Failed to create an isolated test customer").toBe(201);
     await use({ email: user.email, password: user.password });
   },
+  /** Authenticates the test's client as its isolated customer before yielding it. */
   customerApi: async ({ api, customer }, use) => {
     await api.login(customer);
     await use(api);

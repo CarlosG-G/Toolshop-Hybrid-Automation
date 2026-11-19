@@ -26,6 +26,7 @@ interface Suite {
   suites?: Suite[];
 }
 
+/** Minimal Playwright JSON structure accepted by the report collector. */
 export interface PlaywrightReport {
   stats?: {
     expected?: number;
@@ -36,6 +37,7 @@ export interface PlaywrightReport {
   suites?: Suite[];
 }
 
+/** Classifies observations using prioritized project, normalized file and source rules. */
 function caseType(project: string, file: string, source: string): string {
   const path = file.replaceAll("\\", "/").toLowerCase();
   if (project === "bdd" || path.includes(".feature")) return "bdd";
@@ -58,6 +60,7 @@ function caseType(project: string, file: string, source: string): string {
   return "other";
 }
 
+/** Separates expected defect failures from passes; rejects unknown runner outcomes. */
 function caseStatus(testCase: TestCase, title: string): TestStatus {
   switch (testCase.status) {
     case "expected":
@@ -79,6 +82,10 @@ function caseStatus(testCase: TestCase, title: string): TestStatus {
   }
 }
 
+/**
+ * Flattens suites depth-first, inheriting file paths and summing all retry durations.
+ * The with-bugs WB-01 passing probe is recorded as a defect observation.
+ */
 export function collectCases(
   suites: Suite[],
   source: string,
