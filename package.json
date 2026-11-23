@@ -43,7 +43,7 @@
     "social-preview": "node scripts/social-preview.mjs"
   },
   "dependencies": {
-    "vibium": "26.8.21"
+    "vibium": "26.11.16"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
